@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>பூத் மட்ட விவரப் படிவம் | Booth Level Detail Form</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Nirmala UI", "Latha", "Segoe UI", sans-serif;
+    font-size: 13px;
+    color: #1a1a1a;
+    background: #f0f0f0;
+    line-height: 1.5;
+  }
+
+  .page {
+    max-width: 210mm;
+    margin: 16px auto;
+    background: #fff;
+    padding: 14mm 12mm;
+    box-shadow: 0 1px 6px rgba(0,0,0,.2);
+  }
+
+  header {
+    text-align: center;
+    border-bottom: 3px double #333;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+  }
+  header h1 { font-size: 19px; }
+  header h2 { font-size: 14px; font-weight: normal; color: #444; }
+
+  .print-btn {
+    display: block;
+    margin: 0 auto 14px;
+    padding: 8px 22px;
+    font-size: 14px;
+    cursor: pointer;
+    background: #b71c1c;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+  }
+
+  /* Identity header grid */
+  .id-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 20px;
+    margin-bottom: 16px;
+  }
+  .id-field { display: flex; align-items: flex-end; gap: 6px; }
+  .id-field label { font-weight: bold; white-space: nowrap; }
+  .id-field .line { flex: 1; border-bottom: 1px solid #333; min-height: 20px; }
+
+  h3.section {
+    background: #b71c1c;
+    color: #fff;
+    padding: 6px 10px;
+    font-size: 15px;
+    margin: 18px 0 10px;
+  }
+
+  /* Details fields */
+  .field { margin-bottom: 12px; page-break-inside: avoid; }
+  .field > label { font-weight: bold; display: block; margin-bottom: 3px; }
+  .field .en { font-weight: normal; color: #555; font-size: 12px; }
+  .writebox {
+    border: 1px solid #999;
+    border-radius: 2px;
+    background:
+      repeating-linear-gradient(to bottom, transparent 0, transparent 25px, #ddd 25px, #ddd 26px);
+    min-height: 54px;
+  }
+  .writebox.tall { min-height: 80px; }
+  .writebox.short { min-height: 28px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+
+  /* Actions checklist */
+  .action {
+    border: 1px solid #bbb;
+    border-left: 4px solid #b71c1c;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    page-break-inside: avoid;
+  }
+  .action .title-row { display: flex; gap: 8px; align-items: baseline; }
+  .action .num { font-weight: bold; color: #b71c1c; }
+  .action .title { font-weight: bold; }
+  .action .desc { color: #333; margin: 4px 0 6px; font-size: 12.5px; }
+  .status-row { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12px; margin-bottom: 6px; }
+  .status-row span { display: flex; align-items: center; gap: 4px; }
+  .cb {
+    display: inline-block;
+    width: 13px; height: 13px;
+    border: 1.5px solid #333;
+  }
+  .notes { display: flex; gap: 6px; align-items: flex-end; font-size: 12px; }
+  .notes .line { flex: 1; border-bottom: 1px dotted #666; min-height: 18px; }
+
+  footer {
+    margin-top: 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    page-break-inside: avoid;
+  }
+  .sign { text-align: center; padding-top: 34px; border-top: 1px solid #333; font-size: 12px; }
+
+  @media print {
+    body { background: #fff; }
+    .page { margin: 0; max-width: none; box-shadow: none; padding: 8mm 6mm; }
+    .print-btn { display: none; }
+    @page { size: A4; margin: 10mm; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>இடைத்தேர்தல் — பூத் மட்ட விவரப் படிவம்</h1>
+    <h2>By-Election — Booth Level Detail Form (2026)</h2>
+  </header>
+
+  <button class="print-btn" onclick="window.print()">🖨️ Print / அச்சிடுக</button>
+
+  <div class="id-grid">
+    <div class="id-field"><label>சட்டமன்றத் தொகுதி / Assembly:</label><div class="line"></div></div>
+    <div class="id-field"><label>வாக்குச்சாவடி எண் / Booth No:</label><div class="line"></div></div>
+    <div class="id-field"><label>கிராமம் / வார்டு / பகுதி:</label><div class="line"></div></div>
+    <div class="id-field"><label>நிரப்பியவர் / Filled by:</label><div class="line"></div></div>
+    <div class="id-field"><label>தொடர்பு எண் / Contact:</label><div class="line"></div></div>
+    <div class="id-field"><label>தேதி / Date:</label><div class="line"></div></div>
+  </div>
+
+  <h3 class="section">பகுதி 1 — பூத் மட்ட விவரங்கள் | Section 1 — Booth Level Details</h3>
+
+  <div class="field">
+    <label>கட்சி வாரியாக பதிவான வாக்குகள் — 2026 <span class="en">(2026 — Polled votes, party wise)</span></label>
+    <div class="writebox tall"></div>
+  </div>
+
+  <div class="two-col">
+    <div class="field">
+      <label>சாதி விகிதம் (%) <span class="en">(% of Caste)</span></label>
+      <div class="writebox"></div>
+    </div>
+    <div class="field">
+      <label>மத விகிதம் (%) <span class="en">(% of Religion)</span></label>
+      <div class="writebox"></div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>உள்ளூர் செல்வாக்குள்ளவர்கள் — பெயர் & தொடர்பு விவரம் <span class="en">(Micro-Influencer name &amp; contact details)</span></label>
+    <div class="writebox tall"></div>
+  </div>
+
+  <div class="field">
+    <label>முக்கியப் பிரச்சனைகள் / சமூகப் பொருளாதாரப் போக்குகள் <span class="en">(Macro Socioeconomic Trends)</span></label>
+    <div class="writebox"></div>
+  </div>
+
+  <div class="field">
+    <label>கூட்டணி மற்றும் வாக்குப்பிரிப்பு <span class="en">(Alliance Dynamics &amp; Vote Splitters)</span></label>
+    <div class="writebox"></div>
+  </div>
+
+  <div class="field">
+    <label>வேட்பாளர் தேர்வு <span class="en">(Candidate Selection)</span></label>
+    <div class="writebox"></div>
+  </div>
+
+  <div class="field">
+    <label>ஊடக மேலாண்மை <span class="en">(Media Narrative)</span></label>
+    <div class="writebox"></div>
+  </div>
+
+  <div class="field">
+    <label>அரசு எதிர்ப்பு அலை <span class="en">(Anti-Incumbency)</span></label>
+    <div class="writebox"></div>
+  </div>
+
+  <div class="field">
+    <label>பயனாளிகள் கணக்கெடுப்பு <span class="en">(Beneficiary Mapping)</span></label>
+    <div class="writebox"></div>
+  </div>
+
+  <h3 class="section">பகுதி 2 — பூத் மட்டச் செயல்பாடுகள் | Section 2 — Booth Level Actions</h3>
+
+  <div class="action">
+    <div class="title-row"><span class="num">1.</span><span class="title">வாக்காளர் வருகைப்பதிவு (Voter Turnout)</span></div>
+    <div class="desc">முந்தைய தேர்தல்களில் எந்தெந்த வீதிகளில் அதிக வாக்குகள் பதிவாகின என்பதை அறிந்து, சாதகமான பகுதிகளில் 100% வாக்குகளைப் பதிவு செய்ய வைப்பது.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <div class="action">
+    <div class="title-row"><span class="num">2.</span><span class="title">சாதி மற்றும் சமூகக் கட்டமைப்பு (Micro-Demographics)</span></div>
+    <div class="desc">ஒவ்வொரு பூத் பகுதிக்குள்ளும் இருக்கும் குறிப்பிட்ட சாதிப் பிரிவினர் மற்றும் சிறுபான்மையினரின் வாக்கு எண்ணிக்கையைத் துல்லியமாகக் கணக்கிடுவது.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <div class="action">
+    <div class="title-row"><span class="num">3.</span><span class="title">உள்ளூர் செல்வாக்குள்ளவர்கள் (Micro-Influencer Alignment)</span></div>
+    <div class="desc">அந்தந்தப் பகுதி குடியிருப்போர் சங்கத் தலைவர்கள், உள்ளூர் முக்கியஸ்தர்கள் மற்றும் ஆன்மீக/சமூகப் பெரியவர்களின் ஆதரவைப் பெறுவது.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <div class="action">
+    <div class="title-row"><span class="num">4.</span><span class="title">பயனாளிகள் கணக்கெடுப்பு (Beneficiary Mapping)</span></div>
+    <div class="desc">அரசின் நலத்திட்டங்கள் (இலவசங்கள், உதவித்தொகை, மானியங்கள்) பெற்ற குடும்பங்களைக் கண்டறிந்து அவர்களின் வாக்குகளைக் குறிவைப்பது.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <div class="action">
+    <div class="title-row"><span class="num">5.</span><span class="title">பக்கக் குழு கட்டமைப்பு (Page Committee Network)</span></div>
+    <div class="desc">வாக்காளர் பட்டியலின் ஒவ்வொரு பக்கத்திற்கும் (Page) ஒரு பொறுப்பாளரை நியமித்து, அந்தப் பக்கத்தில் உள்ள குடும்பங்களுடன் நேரடித் தொடர்பில் இருப்பது.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <div class="action">
+    <div class="title-row"><span class="num">6.</span><span class="title">முக்கியப் பிரச்சனைகள் (Macro Socioeconomic Trends)</span></div>
+    <div class="desc">தொகுதியின் முக்கியப் பிரச்சனைகளான வேலைவாய்ப்பின்மை, விவசாயப் பிரச்சனைகள், குடிநீர் பற்றாக்குறை மற்றும் சாலை உள்கட்டமைப்புகளை மையப்படுத்திப் பிரச்சாரம் செய்வது.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <div class="action">
+    <div class="title-row"><span class="num">7.</span><span class="title">கூட்டணி மற்றும் வாக்குப்பிரிப்பு (Alliance Dynamics &amp; Vote Splitters)</span></div>
+    <div class="desc">கூட்டணிக் கட்சிகளின் வாக்குகள் சரியாக மாறுகிறதா என்பதை உறுதிப்படுத்துவதுடன், சுயேச்சைகள் மற்றும் மூன்றாம் தரப்புக் கட்சிகளால் பிரியும் வாக்குகளைக் கணிப்பது.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <div class="action">
+    <div class="title-row"><span class="num">8.</span><span class="title">வேட்பாளர் தேர்வு (Candidate Selection)</span></div>
+    <div class="desc">வேட்பாளரின் தனிப்பட்ட நற்பெயர், மக்களுக்கு எளிதில் அணுகக்கூடியவரா என்பது, அவரின் நிதி பலம் மற்றும் அவர் அந்தத் தொகுதியைச் சேர்ந்தவரா (Local vs Outsider) என்ற காரணி.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <div class="action">
+    <div class="title-row"><span class="num">9.</span><span class="title">ஊடக மேலாண்மை (Media Narrative)</span></div>
+    <div class="desc">உள்ளூர் வாட்ஸ்அப் (WhatsApp) குழுக்கள், யூடியூப் (YouTube) அரசியல் சேனல்கள் மற்றும் பிராந்தியத் தொலைக்காட்சிகள் மூலம் சாதகமான அலையை உருவாக்குவது.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <div class="action">
+    <div class="title-row"><span class="num">10.</span><span class="title">வாக்குச்சாவடி ஆரோக்கிய மதிப்பெண் (Booth Health Score)</span></div>
+    <div class="desc">பூத்தில் உள்ள மொத்த வாக்காளர்களில் தீவிர ஆதரவாளர்கள் (Committed), நடுநிலையானவர்கள் (Swing) மற்றும் எதிர்த்தரப்பு ஆதரவாளர்கள் (Opponent) எனப் பிரித்து, அந்த பூத்தின் தேர்தல் பலத்தை சதவீத அடிப்படையில் கணிப்பது.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>Committed ____% &nbsp; Swing ____% &nbsp; Opponent ____% &nbsp; குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <div class="action">
+    <div class="title-row"><span class="num">11.</span><span class="title">வாக்குச்சாவடி இடப்பெயர்வு வேகம் (Displacement Velocity)</span></div>
+    <div class="desc">தேர்தலில் ஒரு குறிப்பிட்ட கட்சிக்கு விழுந்த வாக்குகள், தற்போதைய களச்சூழலில் புதிய கட்சிகளின் வருகையாலோ அல்லது உள்ளூர் அதிருப்தியாலோ எவ்வளவு வேகமாக மாறுகின்றன என்பதைத் துல்லியமாகக் கண்காணிப்பது.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <div class="action">
+    <div class="title-row"><span class="num">12.</span><span class="title">பக்கக் குழுக்கள் மூலம் 1:1 நுண்-தணிக்கை (Micro-Auditing 1:1)</span></div>
+    <div class="desc">வாக்காளர் பட்டியலின் ஒவ்வொரு பக்கத்திற்கும் நியமிக்கப்படும் 'பக்க முகவர்கள்' மூலம் ஒவ்வொரு குடும்பத்தின் தினசரி மனநிலை மாற்றம், தேவைகள் மற்றும் அரசியல் சார்பை 1:1 என்ற விகிதத்தில் ஆராய்வது.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <div class="action">
+    <div class="title-row"><span class="num">13.</span><span class="title">வாட்ஸ்அப் கிளஸ்டர் மேலாண்மை (Algorithmic WhatsApp Clusters)</span></div>
+    <div class="desc">ஒரு பூத் பகுதிக்குள் 30–40 குடும்பங்களை உள்ளடக்கிய சிறிய வாட்ஸ்அப் குழுக்களை உருவாக்கி, அந்தந்த தெருக்களின் உள்ளூர் பிரச்சனைகளுக்கு ஏற்ப பிரத்யேகச் செய்திகளை (Hyper-local messaging) பரப்புவது.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <div class="action">
+    <div class="title-row"><span class="num">14.</span><span class="title">நலத்திட்டப் பயனாளிகள் பின்தொடர்தல் (Beneficiary Follow-up &amp; Mapping)</span></div>
+    <div class="desc">மத்திய/மாநில அரசுகளின் மகளிர் உரிமைத் தொகை, இலவச மின்சாரம், விவசாய மானியம், கல்வி உதவித்தொகை போன்ற திட்டங்களால் பயனடைந்த வீடுகளைத் தனியாகக் கண்டறிந்து, "நன்றியுணர்வு" வாக்குகளை (Gratitude Votes) உறுதி செய்வது.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <div class="action">
+    <div class="title-row"><span class="num">15.</span><span class="title">புதிய மற்றும் இளம் வாக்காளர்கள் மாற்றம் (Youth Conversion &amp; First-time Voters)</span></div>
+    <div class="desc">18–22 வயதுக்குட்பட்ட புதிய வாக்காளர்களின் எண்ணிக்கையைக் கணக்கெடுத்து, பாரம்பரிய அரசியல் சாயல் இல்லாத அவர்களின் வாக்குகளை இன்ஸ்டாகிராம் ரீல்ஸ் மற்றும் சமூக ஊடகங்கள் மூலம் தங்கள் பக்கம் திருப்புவது.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <div class="action">
+    <div class="title-row"><span class="num">16.</span><span class="title">டிஜிட்டல் போர் அறை மற்றும் தரவு பகுப்பாய்வு (Digital War Room Setup)</span></div>
+    <div class="desc">தொகுதி முழுவதும் உள்ள வாக்காளர்களின் தரவுகளை செயற்கை நுண்ணறிவு (AI Tools) மூலம் பகுப்பாய்வு செய்து, எந்தெந்த பகுதிகளில் பிரச்சாரத்தை தீவிரப்படுத்த வேண்டும் என்பதை உடனுக்குடன் முடிவெடுக்கும் கட்டளை மையங்களை (Command Dashboards) இயக்குவது.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <div class="action">
+    <div class="title-row"><span class="num">17.</span><span class="title">வாக்குப்பிரிப்பு மற்றும் கூட்டணி தாக்கக் கணிப்பு (Vote Splitter Factor)</span></div>
+    <div class="desc">பிரதான கட்சிகளுக்கு இடையே போட்டி இருக்கும்போது, மூன்றாம் தரப்பு புதிய கட்சிகள் அல்லது சுயேச்சைகள் பிரிக்கும் 3,000 முதல் 12,000 வாக்குகள் ஒட்டுமொத்த தேர்தல் முடிவை எப்படி மாற்றும் என்பதை முன்கூட்டியே கணித்து அதற்கேற்ப வியூகம் அமைப்பது.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <div class="action">
+    <div class="title-row"><span class="num">18.</span><span class="title">பொதுக் கருத்து கண்காணிப்பு (Real-time LLM Sentiment Monitoring)</span></div>
+    <div class="desc">தொகுதி மக்கள் சமூக ஊடகங்களிலும், உள்ளூர் தேநீர்க் கடைகளிலும் பேசும் விவாதங்களை உடனுக்குடன் கண்காணித்து (Social Listening), எதிர்க்கட்சிகளின் அவதூறுகளுக்கு 4 மணி நேரத்திற்குள் பதிலடித் தரவுகளை (Narrative Counter-ops) உருவாக்குவது.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <div class="action">
+    <div class="title-row"><span class="num">19.</span><span class="title">பிராந்திய செல்வாக்கு நெட்வொர்க் (Regional Influencer Matrices)</span></div>
+    <div class="desc">தொகுதி மட்டத்தில் பெரிய அளவில் மதிக்கப்படும் மருத்துவர்கள், வழக்கறிஞர்கள், வர்த்தக சங்கத் தலைவர்கள் மற்றும் உள்ளூர் யூடியூப் விமர்சகர்களை (Local Influencers) தங்கள் வேட்பாளருக்கு ஆதரவாகப் பேச வைப்பது.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <div class="action">
+    <div class="title-row"><span class="num">20.</span><span class="title">வேட்பாளரின் உள்ளூர் ஏற்புத்திறன் (Candidate Viability Index)</span></div>
+    <div class="desc">வேட்பாளரின் சமூகப் பின்னணி, தொகுதி மக்களின் தேவைகளை நிவர்த்தி செய்யும் நிதி மற்றும் ஆள் பலம், அவர் தொகுதியைச் சேர்ந்தவரா (Native) அல்லது வெளிமாவட்டத்தைச் சேர்ந்தவரா (Outsider) என்ற மக்களின் மனவோட்டத்தை ஆராய்வது.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <div class="action">
+    <div class="title-row"><span class="num">21.</span><span class="title">அரசு எதிர்ப்பு அலை மேலாண்மை (Anti-Incumbency Vulnerability)</span></div>
+    <div class="desc">தொகுதியில் உள்ள தற்போதைய சட்டமன்ற உறுப்பினர் (MLA) மீதான அதிருப்தி எந்தெந்த துறைகளில் (சாலை வசதி, குடிநீர், வேலைவாய்ப்பு) அதிகமாக உள்ளது என்பதைத் தனித்தனியாகப் பட்டியலிட்டு, அதைத் தேர்தல் பிரச்சாரத்தின் முக்கியப் புள்ளியாக மாற்றுவது.</div>
+    <div class="status-row"><span><span class="cb"></span> தொடங்கப்படவில்லை</span><span><span class="cb"></span> நடைபெறுகிறது</span><span><span class="cb"></span> முடிந்தது</span></div>
+    <div class="notes"><span>குறிப்புகள்:</span><div class="line"></div></div>
+  </div>
+
+  <footer>
+    <div class="sign">பூத் பொறுப்பாளர் கையொப்பம்<br>Booth In-charge Signature</div>
+    <div class="sign">தொகுதி ஒருங்கிணைப்பாளர் கையொப்பம்<br>Assembly Coordinator Signature</div>
+  </footer>
+
+</div>
+</body>
+</html>
