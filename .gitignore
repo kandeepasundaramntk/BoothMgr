@@ -1,0 +1,24 @@
+# dependencies / build
+node_modules/
+dist/
+*.tsbuildinfo
+
+# environment & secrets — Supabase keys live here, never commit
+.env
+.env.local
+.env.*.local
+
+# real voter data must never be committed (see CLAUDE.md — Data Sensitivity)
+data/
+*.csv
+exports/
+
+# editor / OS
+.DS_Store
+*.local
+.vscode/
+.idea/
+
+# logs
+npm-debug.log*
+*.log

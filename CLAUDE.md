@@ -2,32 +2,39 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Status
-
-Greenfield project — **no code exists yet**. The directory is not a git repository. The only artifact is the requirements document `By election booth level detailed requirement.xlsx`. Any build/test/lint commands will be defined once a tech stack is chosen; update this file at that point.
-
 ## What This Project Is
 
-"BoothMgr" is a booth-level election campaign management system for the 2026 Tamil Nadu by-elections (NTK 2.0). Requirements are bilingual — feature descriptions in the spreadsheet are written in Tamil with English parenthetical labels. UI and data will likely need Tamil-language support.
+"BoothMgr" is a booth-level election campaign management system for the 2026 Tamil Nadu by-elections (NTK 2.0). v1 digitizes the paper booth detail form, tracks the status of 21 booth-level campaign actions per booth, and provides assembly dashboards. The UI is bilingual — Tamil primary with English parenthetical labels, hardcoded in components (no i18n framework).
 
-## Requirements Document
+## Stack & Commands
 
-`By election booth level detailed requirement.xlsx` has two sheets:
+React 18 + TypeScript + Vite SPA backed by Supabase (Postgres + Auth + RLS).
 
-1. **"Booth level details"** — the core data schema, one row per booth. Columns: Sl. No., Assembly Name, Booth Number, Village/Ward/Area, 2026 polled votes (party-wise), % of caste, % of religion, micro-influencer name & contact details, macro socioeconomic trends, alliance dynamics & vote splitters, candidate selection, media narrative, anti-incumbency, beneficiary mapping.
+- `npm run dev` — dev server (`VITE_DEMO=1 npm run dev` for browser-only demo mode with fictional data)
+- `npm run build` — `tsc -b` typecheck + Vite production build
+- `npm run lint` — ESLint (flat config)
 
-2. **"Booth level actions"** — ~20 booth-level campaign features described in Tamil, keyed by Assembly + Booth Number. Major ones: voter turnout tracking, micro-demographics (caste/minority vote counts), micro-influencer alignment, beneficiary mapping and follow-up (government scheme recipients), page committee network (one agent per voter-roll page, 1:1 family-level auditing), Booth Health Score (committed/swing/opponent voter percentages), displacement velocity (vote-shift tracking), WhatsApp cluster management (30–40 families per group, hyper-local messaging), youth/first-time voter conversion (ages 18–22), digital war room with AI-driven command dashboards, vote-splitter factor prediction, real-time LLM sentiment monitoring with counter-narrative response, regional influencer matrices, Candidate Viability Index, and anti-incumbency vulnerability mapping.
+There are no unit tests yet; verification is done by driving the app in demo mode (Playwright against `VITE_DEMO=1 npm run dev`).
 
-## Reading the Spreadsheet
+## Architecture
 
-Python with `openpyxl` is available (`python` on PATH). The console codepage is cp1252, so printing Tamil text directly raises `UnicodeEncodeError` — write extracted content to a UTF-8 file and Read that file instead:
+- `src/data/api.ts` — `DataApi` interface; `getApi()` returns the Supabase implementation (`supabaseApi.ts`) or, when `VITE_DEMO=1`, a localStorage implementation (`demoApi.ts`). All pages go through this interface — never call Supabase directly from a page.
+- `src/data/actionsCatalog.ts` — the 21 campaign actions as a TS constant. It mirrors `supabase/migrations/0002_seed_actions.sql`; **if one changes, change both**.
+- `supabase/migrations/` — schema (`0001`), action seed (`0002`). Every table has deny-by-default RLS with authenticated-only policies. Dashboard aggregates come from the SQL views `booth_completion`, `assembly_health_summary`, `action_progress` (mirrored by client-side math in `demoApi.ts` — keep them consistent).
+- `src/pages/` — Login, Assemblies, BoothList (CSV import/export), Booth (detail form + 21-action checklist), BoothPrint (paper-form layout), Dashboard.
+- Booth Health Score (action 10) lives as `committed_pct`/`swing_pct`/`opponent_pct` columns on `booths`, not in `booth_actions`. `booth_actions` rows are created lazily — a missing row means `not_started`.
+- Visual identity follows the original paper form (`booth-form.html`): `#b71c1c` accent, Tamil-capable font stack. Global styles in `src/styles.css`.
 
-```python
-import openpyxl, io
-wb = openpyxl.load_workbook(r'By election booth level detailed requirement.xlsx', data_only=True)
-out = io.open('dump.txt', 'w', encoding='utf-8')  # never print() Tamil to console
-```
+## Requirements Documents
+
+- `By election booth level detailed requirement.xlsx` — original requirements: "Booth level details" sheet (the data schema) and "Booth level actions" sheet (the 21 actions, in Tamil). When reading it with Python, write extracted Tamil text to a UTF-8 file rather than printing to console (console codepages may not handle Tamil).
+- `booth-form.html` — the printable paper form v1 was built from; `BoothPrintPage` reuses its layout.
 
 ## Data Sensitivity
 
-The system is designed to hold voter-level political data: caste/religion percentages, individual influencer contact details, family-level political leanings, and beneficiary lists. Treat any real data files as sensitive — do not commit them, and flag privacy implications when designing storage or export features.
+The system holds voter-level political data: caste/religion percentages, influencer contact details, beneficiary information. Rules:
+
+- Never commit real data files, CSV exports, or `.env.local` (all gitignored).
+- Never add anonymous/public RLS policies or disable RLS.
+- Seed/demo data must be clearly fictional (`மாதிரி` / "demo" naming).
+- Flag privacy implications when designing storage or export features.
