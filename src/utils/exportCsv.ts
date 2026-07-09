@@ -10,6 +10,14 @@ const STATUS_LABEL: Record<ActionStatus, string> = {
   done: 'Done',
 }
 
+// Prevents CSV/formula injection: a cell starting with =, +, -, @, tab, or CR
+// is interpreted as a formula by Excel/Sheets when the file is opened. Since
+// several columns hold free-text user input, prefix such cells with a
+// leading apostrophe so spreadsheet apps treat them as literal text.
+function csvSafe(value: string): string {
+  return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value
+}
+
 /**
  * Exports one assembly as CSV. The first 14 columns match the requirements
  * spreadsheet ("Booth level details" sheet) so the file round-trips to Excel;
@@ -47,6 +55,9 @@ export async function exportAssemblyCsv(assemblyId: string, assemblyName: string
       row[`${action.id}. ${action.title_en} (${TEAM_LABEL[action.team].en})`] = st
         ? STATUS_LABEL[st.status]
         : STATUS_LABEL.not_started
+    }
+    for (const key of Object.keys(row)) {
+      row[key] = csvSafe(row[key])
     }
     return row
   })
