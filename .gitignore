@@ -25,3 +25,6 @@ exports/
 # logs
 npm-debug.log*
 *.log
+
+# scratch state for subagent-driven-development execution
+.superpowers/
