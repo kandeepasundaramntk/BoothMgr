@@ -3,7 +3,7 @@ export interface Assembly {
   name: string
 }
 
-export type UserRole = 'admin' | 'assembly_poc' | 'member'
+export type UserRole = 'superadmin' | 'admin' | 'assembly_poc' | 'member'
 export type UserStatus = 'pending' | 'approved' | 'rejected'
 
 export interface Profile {

@@ -1,6 +1,7 @@
 import type { UserRole, UserStatus } from '../types'
 
 export const ROLE_LABEL: Record<UserRole, { ta: string; en: string }> = {
+  superadmin: { ta: 'மேல்நிர்வாகி', en: 'Super Admin' },
   admin: { ta: 'நிர்வாகி', en: 'Admin' },
   assembly_poc: { ta: 'தொகுதி பொறுப்பாளர்', en: 'Assembly POC' },
   member: { ta: 'உறுப்பினர்', en: 'Member' },
