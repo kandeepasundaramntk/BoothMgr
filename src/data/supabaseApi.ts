@@ -309,7 +309,7 @@ export function createSupabaseApi(): DataApi {
       if (error) fail(error.message)
     },
 
-    async setProfileRole(userId: string, role: Extract<UserRole, 'assembly_poc' | 'member'>): Promise<void> {
+    async setProfileRole(userId: string, role: UserRole): Promise<void> {
       const { error } = await db.rpc('set_user_role', { target: userId, new_role: role })
       if (error) fail(error.message)
     },

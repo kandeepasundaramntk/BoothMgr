@@ -42,8 +42,13 @@ export interface DataApi {
   listProfiles(): Promise<Profile[]>
   approveProfile(userId: string): Promise<void>
   rejectProfile(userId: string): Promise<void>
-  /** Admin only: promote a member to assembly POC or demote back. */
-  setProfileRole(userId: string, role: Extract<UserRole, 'assembly_poc' | 'member'>): Promise<void>
+  /**
+   * Change a user's role. Promoting/demoting between assembly_poc and
+   * member requires admin or superadmin; any change touching admin or
+   * superadmin requires superadmin. Enforced server-side (RLS/RPC) and
+   * mirrored in demoApi.
+   */
+  setProfileRole(userId: string, role: UserRole): Promise<void>
 }
 
 export function hasSupabaseConfig(): boolean {
