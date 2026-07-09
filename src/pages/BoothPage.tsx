@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { TeamBadge, TeamChips } from '../components/TeamBadge'
 import { ACTIONS } from '../data/actionsCatalog'
 import { getApi } from '../data/api'
+import { FIELD_TEAM, matchesTeam, type BoothFieldKey, type TeamFilter } from '../data/teams'
 import type { ActionStatus, BoothDetail } from '../types'
 
 const STATUS_OPTIONS: { value: ActionStatus; ta: string; en: string }[] = [
@@ -21,6 +23,7 @@ export default function BoothPage() {
   const { boothId } = useParams<{ boothId: string }>()
   const queryClient = useQueryClient()
   const [form, setForm] = useState<BoothDetail | null>(null)
+  const [teamFilter, setTeamFilter] = useState<TeamFilter>('all')
   const [dirty, setDirty] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [savedAt, setSavedAt] = useState<Date | null>(null)
@@ -100,6 +103,8 @@ export default function BoothPage() {
 
   const numOrNull = (v: string) => (v === '' ? null : Number(v))
 
+  const showField = (key: BoothFieldKey) => matchesTeam(FIELD_TEAM[key], teamFilter)
+
   return (
     <div className="card">
       <div className="toolbar no-print">
@@ -114,6 +119,8 @@ export default function BoothPage() {
         பூத் {form.booth.booth_number} — {form.booth.village_ward_area || '…'}
       </h2>
       {error && <div className="error">{error}</div>}
+
+      <TeamChips value={teamFilter} onChange={setTeamFilter} />
 
       <h3 className="section">பகுதி 1 — பூத் மட்ட விவரங்கள் | Section 1 — Booth Level Details</h3>
 
@@ -139,9 +146,11 @@ export default function BoothPage() {
         </div>
       </div>
 
+      {showField('party_votes') && (
       <div className="field">
         <label>
           கட்சி வாரியாக பதிவான வாக்குகள் — 2026 <span className="en">(2026 — Polled votes, party wise)</span>
+          <TeamBadge team={FIELD_TEAM.party_votes} />
         </label>
         {form.partyVotes.map((v, i) => (
           <div className="repeat-row" key={i}>
@@ -175,11 +184,14 @@ export default function BoothPage() {
           + கட்சி சேர் / Add party
         </button>
       </div>
+      )}
 
       <div className="two-col">
+        {showField('castes') && (
         <div className="field">
           <label>
             சாதி விகிதம் (%) <span className="en">(% of Caste)</span>
+            <TeamBadge team={FIELD_TEAM.castes} />
           </label>
           {form.castes.map((c, i) => (
             <div className="repeat-row" key={i}>
@@ -211,10 +223,13 @@ export default function BoothPage() {
           </button>
           {pctWarning(casteSum, 'சாதி விகிதம்') && <p className="warn-text">{pctWarning(casteSum, 'சாதி விகிதம்')}</p>}
         </div>
+        )}
 
+        {showField('religions') && (
         <div className="field">
           <label>
             மத விகிதம் (%) <span className="en">(% of Religion)</span>
+            <TeamBadge team={FIELD_TEAM.religions} />
           </label>
           {form.religions.map((r, i) => (
             <div className="repeat-row" key={i}>
@@ -252,11 +267,14 @@ export default function BoothPage() {
             <p className="warn-text">{pctWarning(religionSum, 'மத விகிதம்')}</p>
           )}
         </div>
+        )}
       </div>
 
+      {showField('influencers') && (
       <div className="field">
         <label>
           உள்ளூர் செல்வாக்குள்ளவர்கள் — பெயர் & தொடர்பு <span className="en">(Micro-Influencers, name & contact)</span>
+          <TeamBadge team={FIELD_TEAM.influencers} />
         </label>
         {form.influencers.map((f, i) => (
           <div className="repeat-row" key={i}>
@@ -292,24 +310,29 @@ export default function BoothPage() {
           + சேர் / Add
         </button>
       </div>
+      )}
 
       {(
         [
           ['macro_trends', 'முக்கியப் பிரச்சனைகள் / சமூகப் பொருளாதாரப் போக்குகள்', 'Macro Socioeconomic Trends'],
+          ['long_pending_issues', 'நீண்டகாலமாகத் தீர்க்கப்படாத பிரச்சனைகள்', 'Long Pending Issues'],
           ['alliance_dynamics', 'கூட்டணி மற்றும் வாக்குப்பிரிப்பு', 'Alliance Dynamics & Vote Splitters'],
           ['candidate_selection', 'வேட்பாளர் தேர்வு', 'Candidate Selection'],
           ['media_narrative', 'ஊடக மேலாண்மை', 'Media Narrative'],
           ['anti_incumbency', 'அரசு எதிர்ப்பு அலை', 'Anti-Incumbency'],
           ['beneficiary_mapping', 'பயனாளிகள் கணக்கெடுப்பு', 'Beneficiary Mapping'],
         ] as const
-      ).map(([key, ta, en]) => (
-        <div className="field" key={key}>
-          <label>
-            {ta} <span className="en">({en})</span>
-          </label>
-          <textarea value={form.booth[key]} onChange={(e) => update((d) => (d.booth[key] = e.target.value))} />
-        </div>
-      ))}
+      )
+        .filter(([key]) => showField(key))
+        .map(([key, ta, en]) => (
+          <div className="field" key={key}>
+            <label>
+              {ta} <span className="en">({en})</span>
+              <TeamBadge team={FIELD_TEAM[key]} />
+            </label>
+            <textarea value={form.booth[key]} onChange={(e) => update((d) => (d.booth[key] = e.target.value))} />
+          </div>
+        ))}
 
       <h3 className="section">பகுதி 2 — பூத் மட்டச் செயல்பாடுகள் | Section 2 — Booth Level Actions</h3>
       <p className="hint" style={{ marginBottom: 10 }}>
@@ -317,7 +340,7 @@ export default function BoothPage() {
         instantly; notes save when you leave the field.)
       </p>
 
-      {ACTIONS.map((action) => {
+      {ACTIONS.filter((action) => matchesTeam(action.team, teamFilter)).map((action) => {
         const st = getAction(action.id)
         return (
           <div className="action-item" key={action.id}>
@@ -325,6 +348,7 @@ export default function BoothPage() {
               <span className="num">{action.id}.</span>
               <span className="title">{action.title_ta}</span>
               <span className="en">({action.title_en})</span>
+              <TeamBadge team={action.team} />
             </div>
             <div className="desc">{action.description_ta}</div>
             <div className="status-row">

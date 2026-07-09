@@ -54,6 +54,7 @@ function emptyBooth(id: string, assemblyId: string, boothNumber: string, village
     media_narrative: '',
     anti_incumbency: '',
     beneficiary_mapping: '',
+    long_pending_issues: '',
   }
 }
 
@@ -119,7 +120,10 @@ function load(): Store {
   const raw = localStorage.getItem(STORE_KEY)
   if (raw) {
     try {
-      return JSON.parse(raw) as Store
+      const store = JSON.parse(raw) as Store
+      // stores written before the long_pending_issues column existed
+      for (const b of store.booths) b.long_pending_issues ??= ''
+      return store
     } catch {
       // corrupted store — fall through to a fresh seed
     }

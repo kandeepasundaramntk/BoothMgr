@@ -253,6 +253,59 @@ table.data tr.clickable:hover {
   font-variant-numeric: tabular-nums;
 }
 
+/* team categorization (Assembly POC / IT Wing / Both) */
+.team-badge {
+  display: inline-block;
+  border: 1px solid;
+  border-radius: 3px;
+  padding: 0 6px;
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: normal;
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+
+.team-badge.team-poc {
+  background: #e6f4ea;
+  border-color: #9fd0ac;
+  color: #1b5e2f;
+}
+
+.team-badge.team-itw {
+  background: #eceff1;
+  border-color: #b0bec5;
+  color: #37474f;
+}
+
+.team-badge.team-both {
+  background: #fdf3dc;
+  border-color: #e4c975;
+  color: #7a5b00;
+}
+
+.team-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.team-chips .chip {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 3px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.team-chips .chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
 /* action checklist */
 .action-item {
   border: 1px solid #cbcbcb;

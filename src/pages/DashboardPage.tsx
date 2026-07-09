@@ -1,7 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { TeamBadge, TeamChips } from '../components/TeamBadge'
 import { ACTIONS, TOTAL_ACTIONS } from '../data/actionsCatalog'
 import { getApi } from '../data/api'
+import { matchesTeam, type TeamFilter } from '../data/teams'
 import { healthColor, healthLabel } from '../utils/health'
 
 // Status palette (dataviz skill): meaning is never color-alone — every bar row
@@ -41,6 +44,7 @@ function StackedBar({ done, inProgress, notStarted }: { done: number; inProgress
 export default function DashboardPage() {
   const { assemblyId } = useParams<{ assemblyId: string }>()
   const navigate = useNavigate()
+  const [teamFilter, setTeamFilter] = useState<TeamFilter>('all')
 
   const assemblies = useQuery({
     queryKey: ['assemblies'],
@@ -154,6 +158,7 @@ export default function DashboardPage() {
         <h3 style={{ marginBottom: 4 }}>
           செயல்பாடுகளின் முன்னேற்றம் <span className="en">(Action progress across {boothCount} booths)</span>
         </h3>
+        <TeamChips value={teamFilter} onChange={setTeamFilter} />
         <div className="toolbar" style={{ fontSize: 12, marginBottom: 10 }}>
           <span>
             <span
@@ -210,13 +215,19 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {progress.data.map((row) => {
+              {progress.data
+                .filter((row) => {
+                  const action = ACTIONS.find((a) => a.id === row.action_id)
+                  return !action || matchesTeam(action.team, teamFilter)
+                })
+                .map((row) => {
                 const action = ACTIONS.find((a) => a.id === row.action_id)
                 return (
                   <tr key={row.action_id}>
                     <td>
                       <strong>{row.action_id}.</strong> {action?.title_ta}{' '}
                       <span className="en">({action?.title_en})</span>
+                      {action && <TeamBadge team={action.team} />}
                     </td>
                     <td>
                       <StackedBar

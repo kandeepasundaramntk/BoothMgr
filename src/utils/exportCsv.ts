@@ -1,6 +1,7 @@
 import Papa from 'papaparse'
 import { ACTIONS } from '../data/actionsCatalog'
 import { getApi } from '../data/api'
+import { TEAM_LABEL } from '../data/teams'
 import type { ActionStatus } from '../types'
 
 const STATUS_LABEL: Record<ActionStatus, string> = {
@@ -36,13 +37,16 @@ export async function exportAssemblyCsv(assemblyId: string, assemblyName: string
       'Media Narrative': d.booth.media_narrative,
       'Anti-Incumbency': d.booth.anti_incumbency,
       'Beneficiary Mapping': d.booth.beneficiary_mapping,
+      'Long Pending Issues': d.booth.long_pending_issues,
       'Committed %': d.booth.committed_pct?.toString() ?? '',
       'Swing %': d.booth.swing_pct?.toString() ?? '',
       'Opponent %': d.booth.opponent_pct?.toString() ?? '',
     }
     for (const action of ACTIONS) {
       const st = d.actions.find((a) => a.action_id === action.id)
-      row[`${action.id}. ${action.title_en}`] = st ? STATUS_LABEL[st.status] : STATUS_LABEL.not_started
+      row[`${action.id}. ${action.title_en} (${TEAM_LABEL[action.team].en})`] = st
+        ? STATUS_LABEL[st.status]
+        : STATUS_LABEL.not_started
     }
     return row
   })

@@ -19,7 +19,8 @@ There are no unit tests yet; verification is done by driving the app in demo mod
 ## Architecture
 
 - `src/data/api.ts` — `DataApi` interface; `getApi()` returns the Supabase implementation (`supabaseApi.ts`) or, when `VITE_DEMO=1`, a localStorage implementation (`demoApi.ts`). All pages go through this interface — never call Supabase directly from a page.
-- `src/data/actionsCatalog.ts` — the 21 campaign actions as a TS constant. It mirrors `supabase/migrations/0002_seed_actions.sql`; **if one changes, change both**.
+- `src/data/actionsCatalog.ts` — the 21 campaign actions as a TS constant. It mirrors `supabase/migrations/0002_seed_actions.sql`; **if one changes, change both**. (The `team` field is app-only metadata, not in the DB.)
+- `src/data/teams.ts` — Assembly POC / IT Wing / Both categorization of booth-form fields and actions (app-only; from the requirements sheet shading and the user's field assignments). UI badges/filter chips live in `src/components/TeamBadge.tsx`.
 - `supabase/migrations/` — schema (`0001`), action seed (`0002`). Every table has deny-by-default RLS with authenticated-only policies. Dashboard aggregates come from the SQL views `booth_completion`, `assembly_health_summary`, `action_progress` (mirrored by client-side math in `demoApi.ts` — keep them consistent).
 - `src/pages/` — Login, Assemblies, BoothList (CSV import/export), Booth (detail form + 21-action checklist), BoothPrint (paper-form layout), Dashboard.
 - Booth Health Score (action 10) lives as `committed_pct`/`swing_pct`/`opponent_pct` columns on `booths`, not in `booth_actions`. `booth_actions` rows are created lazily — a missing row means `not_started`.

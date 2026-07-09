@@ -165,6 +165,7 @@ export function createSupabaseApi(): DataApi {
           media_narrative: b.media_narrative,
           anti_incumbency: b.anti_incumbency,
           beneficiary_mapping: b.beneficiary_mapping,
+          long_pending_issues: b.long_pending_issues,
         })
         .eq('id', b.id)
       if (error) fail(error.message)

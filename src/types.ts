@@ -17,6 +17,7 @@ export interface Booth {
   media_narrative: string
   anti_incumbency: string
   beneficiary_mapping: string
+  long_pending_issues: string
 }
 
 export interface PartyVote {

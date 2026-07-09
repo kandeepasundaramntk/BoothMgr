@@ -1,9 +1,12 @@
 /**
  * The 21 booth-level campaign actions.
  * Mirrors supabase/migrations/0002_seed_actions.sql — if one changes, change both.
+ * (team is app-only metadata from the requirements sheet shading; see teams.ts.)
  */
+import type { Team } from './teams'
 export interface ActionDef {
   id: number
+  team: Team
   title_ta: string
   title_en: string
   description_ta: string
@@ -12,6 +15,7 @@ export interface ActionDef {
 export const ACTIONS: ActionDef[] = [
   {
     id: 1,
+    team: 'itw',
     title_ta: 'வாக்காளர் வருகைப்பதிவு',
     title_en: 'Voter Turnout',
     description_ta:
@@ -19,6 +23,7 @@ export const ACTIONS: ActionDef[] = [
   },
   {
     id: 2,
+    team: 'poc',
     title_ta: 'சாதி மற்றும் சமூகக் கட்டமைப்பு',
     title_en: 'Micro-Demographics',
     description_ta:
@@ -26,6 +31,7 @@ export const ACTIONS: ActionDef[] = [
   },
   {
     id: 3,
+    team: 'poc',
     title_ta: 'உள்ளூர் செல்வாக்குள்ளவர்கள்',
     title_en: 'Micro-Influencer Alignment',
     description_ta:
@@ -33,6 +39,7 @@ export const ACTIONS: ActionDef[] = [
   },
   {
     id: 4,
+    team: 'poc',
     title_ta: 'பயனாளிகள் கணக்கெடுப்பு',
     title_en: 'Beneficiary Mapping',
     description_ta:
@@ -40,6 +47,7 @@ export const ACTIONS: ActionDef[] = [
   },
   {
     id: 5,
+    team: 'poc',
     title_ta: 'பக்கக் குழு கட்டமைப்பு',
     title_en: 'Page Committee Network',
     description_ta:
@@ -47,6 +55,7 @@ export const ACTIONS: ActionDef[] = [
   },
   {
     id: 6,
+    team: 'poc',
     title_ta: 'முக்கியப் பிரச்சனைகள்',
     title_en: 'Macro Socioeconomic Trends',
     description_ta:
@@ -54,6 +63,7 @@ export const ACTIONS: ActionDef[] = [
   },
   {
     id: 7,
+    team: 'poc',
     title_ta: 'கூட்டணி மற்றும் வாக்குப்பிரிப்பு',
     title_en: 'Alliance Dynamics & Vote Splitters',
     description_ta:
@@ -61,6 +71,7 @@ export const ACTIONS: ActionDef[] = [
   },
   {
     id: 8,
+    team: 'poc',
     title_ta: 'வேட்பாளர் தேர்வு',
     title_en: 'Candidate Selection',
     description_ta:
@@ -68,6 +79,7 @@ export const ACTIONS: ActionDef[] = [
   },
   {
     id: 9,
+    team: 'itw',
     title_ta: 'ஊடக மேலாண்மை',
     title_en: 'Media Narrative',
     description_ta:
@@ -75,6 +87,7 @@ export const ACTIONS: ActionDef[] = [
   },
   {
     id: 10,
+    team: 'poc',
     title_ta: 'வாக்குச்சாவடி ஆரோக்கிய மதிப்பெண்',
     title_en: 'Booth Health Score',
     description_ta:
@@ -82,6 +95,7 @@ export const ACTIONS: ActionDef[] = [
   },
   {
     id: 11,
+    team: 'itw',
     title_ta: 'வாக்குச்சாவடி இடப்பெயர்வு வேகம்',
     title_en: 'Displacement Velocity',
     description_ta:
@@ -89,6 +103,7 @@ export const ACTIONS: ActionDef[] = [
   },
   {
     id: 12,
+    team: 'both',
     title_ta: 'பக்கக் குழுக்கள் மூலம் 1:1 நுண்-தணிக்கை',
     title_en: 'Micro-Auditing 1:1',
     description_ta:
@@ -96,6 +111,7 @@ export const ACTIONS: ActionDef[] = [
   },
   {
     id: 13,
+    team: 'both',
     title_ta: 'வாட்ஸ்அப் கிளஸ்டர் மேலாண்மை',
     title_en: 'Algorithmic WhatsApp Clusters',
     description_ta:
@@ -103,6 +119,7 @@ export const ACTIONS: ActionDef[] = [
   },
   {
     id: 14,
+    team: 'itw',
     title_ta: 'நலத்திட்டப் பயனாளிகள் பின்தொடர்தல்',
     title_en: 'Beneficiary Follow-up & Mapping',
     description_ta:
@@ -110,6 +127,7 @@ export const ACTIONS: ActionDef[] = [
   },
   {
     id: 15,
+    team: 'poc',
     title_ta: 'புதிய மற்றும் இளம் வாக்காளர்கள் மாற்றம்',
     title_en: 'Youth Conversion & First-time Voters',
     description_ta:
@@ -117,6 +135,7 @@ export const ACTIONS: ActionDef[] = [
   },
   {
     id: 16,
+    team: 'itw',
     title_ta: 'டிஜிட்டல் போர் அறை மற்றும் தரவு பகுப்பாய்வு',
     title_en: 'Digital War Room Setup',
     description_ta:
@@ -124,6 +143,7 @@ export const ACTIONS: ActionDef[] = [
   },
   {
     id: 17,
+    team: 'itw',
     title_ta: 'வாக்குப்பிரிப்பு மற்றும் கூட்டணி தாக்கக் கணிப்பு',
     title_en: 'Vote Splitter Factor',
     description_ta:
@@ -131,6 +151,7 @@ export const ACTIONS: ActionDef[] = [
   },
   {
     id: 18,
+    team: 'itw',
     title_ta: 'பொதுக் கருத்து கண்காணிப்பு',
     title_en: 'Real-time LLM Sentiment Monitoring',
     description_ta:
@@ -138,6 +159,7 @@ export const ACTIONS: ActionDef[] = [
   },
   {
     id: 19,
+    team: 'poc',
     title_ta: 'பிராந்திய செல்வாக்கு நெட்வொர்க்',
     title_en: 'Regional Influencer Matrices',
     description_ta:
@@ -145,6 +167,7 @@ export const ACTIONS: ActionDef[] = [
   },
   {
     id: 20,
+    team: 'poc',
     title_ta: 'வேட்பாளரின் உள்ளூர் ஏற்புத்திறன்',
     title_en: 'Candidate Viability Index',
     description_ta:
@@ -152,6 +175,7 @@ export const ACTIONS: ActionDef[] = [
   },
   {
     id: 21,
+    team: 'poc',
     title_ta: 'அரசு எதிர்ப்பு அலை மேலாண்மை',
     title_en: 'Anti-Incumbency Vulnerability',
     description_ta:
