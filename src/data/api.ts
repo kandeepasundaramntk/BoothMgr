@@ -32,11 +32,14 @@ export interface DataApi {
   getAssemblyExport(assemblyId: string): Promise<BoothDetail[]>
 }
 
-export const isDemoMode = import.meta.env.VITE_DEMO === '1'
-
 export function hasSupabaseConfig(): boolean {
   return Boolean(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY)
 }
+
+// Demo when asked for explicitly — or in `npm run dev` with no Supabase keys,
+// so the dev environment works out of the box. Production builds without keys
+// still show the not-configured error instead of silently serving demo data.
+export const isDemoMode = import.meta.env.VITE_DEMO === '1' || (import.meta.env.DEV && !hasSupabaseConfig())
 
 let apiPromise: Promise<DataApi> | null = null
 
