@@ -6,6 +6,8 @@ import type {
   BoothDetail,
   BoothImportRow,
   BoothListItem,
+  Profile,
+  UserRole,
 } from '../types'
 
 /**
@@ -30,6 +32,18 @@ export interface DataApi {
   getWeakestBooths(assemblyId: string, limit: number): Promise<BoothListItem[]>
   getActionProgress(assemblyId: string): Promise<ActionProgressRow[]>
   getAssemblyExport(assemblyId: string): Promise<BoothDetail[]>
+
+  // ---- users & approval ----
+  /** The signed-in user's own profile; null when no profile row exists yet. */
+  getMyProfile(): Promise<Profile | null>
+  /** Assembly names for the signup dropdown — works before authentication. */
+  listSignupAssemblies(): Promise<Assembly[]>
+  /** Profiles the current user may see (RLS-scoped: admin all, POC own assembly). */
+  listProfiles(): Promise<Profile[]>
+  approveProfile(userId: string): Promise<void>
+  rejectProfile(userId: string): Promise<void>
+  /** Admin only: promote a member to assembly POC or demote back. */
+  setProfileRole(userId: string, role: Extract<UserRole, 'assembly_poc' | 'member'>): Promise<void>
 }
 
 export function hasSupabaseConfig(): boolean {

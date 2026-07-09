@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { hasSupabaseConfig, isDemoMode } from '../data/api'
 import { L, useT } from '../i18n'
@@ -73,6 +73,11 @@ export default function LoginPage() {
           {busy ? '…' : t('உள்நுழை', 'Sign in')}
         </button>
       </form>
+      <p style={{ marginTop: 14 }}>
+        <Link to="/signup">
+          <L ta="புதிய பயனரா? பதிவு செய்யவும்" en="New here? Sign up" /> →
+        </Link>
+      </p>
     </div>
   )
 }

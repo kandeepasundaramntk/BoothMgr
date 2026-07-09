@@ -11,7 +11,10 @@ import type {
   CastePct,
   Influencer,
   PartyVote,
+  Profile,
   ReligionPct,
+  SignUpInput,
+  UserRole,
 } from '../types'
 import { ACTIONS } from './actionsCatalog'
 import type { DataApi } from './api'
@@ -24,6 +27,8 @@ import type { DataApi } from './api'
  */
 
 const STORE_KEY = 'boothmgr-demo-v1'
+// same key AuthContext uses for the fake demo session
+const DEMO_SESSION_KEY = 'boothmgr-demo-session'
 
 interface Store {
   assemblies: Assembly[]
@@ -33,6 +38,7 @@ interface Store {
   religions: Record<string, ReligionPct[]>
   influencers: Record<string, Influencer[]>
   actions: Record<string, BoothAction[]>
+  profiles: Profile[]
 }
 
 function uuid(): string {
@@ -56,6 +62,47 @@ function emptyBooth(id: string, assemblyId: string, boothNumber: string, village
     beneficiary_mapping: '',
     long_pending_issues: '',
   }
+}
+
+function seedProfiles(assemblyId: string | null): Profile[] {
+  return [
+    {
+      id: uuid(),
+      email: 'demo@example.com',
+      full_name: 'மாதிரி நிர்வாகி (Demo Admin)',
+      phone: '00000 00000',
+      role: 'admin',
+      status: 'approved',
+      assembly_id: null,
+    },
+    {
+      id: uuid(),
+      email: 'poc@demo.example',
+      full_name: 'மாதிரி பொறுப்பாளர் (Demo POC)',
+      phone: '00000 00010',
+      role: 'assembly_poc',
+      status: 'approved',
+      assembly_id: assemblyId,
+    },
+    {
+      id: uuid(),
+      email: 'pending1@demo.example',
+      full_name: 'மாதிரி நபர் 1 (Demo Pending 1)',
+      phone: '00000 00001',
+      role: 'member',
+      status: 'pending',
+      assembly_id: assemblyId,
+    },
+    {
+      id: uuid(),
+      email: 'pending2@demo.example',
+      full_name: 'மாதிரி நபர் 2 (Demo Pending 2)',
+      phone: '00000 00002',
+      role: 'member',
+      status: 'pending',
+      assembly_id: assemblyId,
+    },
+  ]
 }
 
 function seed(): Store {
@@ -82,6 +129,7 @@ function seed(): Store {
 
   return {
     assemblies: [{ id: assemblyId, name: 'மாதிரி தொகுதி (Demo Assembly)' }],
+    profiles: seedProfiles(assemblyId),
     booths: [booth1, booth2, booth3],
     partyVotes: {
       [b1]: [
@@ -123,6 +171,8 @@ function load(): Store {
       const store = JSON.parse(raw) as Store
       // stores written before the long_pending_issues column existed
       for (const b of store.booths) b.long_pending_issues ??= ''
+      // stores written before profiles existed
+      store.profiles ??= seedProfiles(store.assemblies[0]?.id ?? null)
       return store
     } catch {
       // corrupted store — fall through to a fresh seed
@@ -181,11 +231,44 @@ function toDetail(store: Store, b: Booth): BoothDetail {
   }
 }
 
+/**
+ * Who is "signed in" right now — resolved from the fake session email.
+ * Unknown emails resolve to the admin profile so the long-standing demo
+ * behavior "any email/password signs in" keeps working.
+ */
+function currentProfile(store: Store): Profile {
+  const email = sessionStorage.getItem(DEMO_SESSION_KEY)
+  const match = store.profiles.find((p) => p.email === email)
+  return match ?? store.profiles.find((p) => p.role === 'admin') ?? store.profiles[0]
+}
+
+/** Demo counterpart of supabase auth.signUp — called from AuthContext. */
+export function demoSignUp(input: SignUpInput): void {
+  const store = load()
+  if (store.profiles.some((p) => p.email === input.email)) {
+    throw new Error(`${input.email} ஏற்கனவே பதிவு செய்யப்பட்டுள்ளது (already registered)`)
+  }
+  store.profiles.push({
+    id: uuid(),
+    email: input.email,
+    full_name: input.full_name,
+    phone: input.phone,
+    role: 'member',
+    status: 'pending',
+    assembly_id: input.assembly_id,
+  })
+  persist(store)
+}
+
 export function createDemoApi(): DataApi {
   return {
     async listAssemblies(): Promise<Assembly[]> {
       const store = load()
-      return [...store.assemblies].sort((a, b) => a.name.localeCompare(b.name))
+      const me = currentProfile(store)
+      // mirrors the scoped RLS: admins see everything, others their assembly
+      const visible =
+        me.role === 'admin' ? store.assemblies : store.assemblies.filter((a) => a.id === me.assembly_id)
+      return [...visible].sort((a, b) => a.name.localeCompare(b.name))
     },
 
     async createAssembly(name: string): Promise<void> {
@@ -309,6 +392,65 @@ export function createDemoApi(): DataApi {
         .filter((b) => b.assembly_id === assemblyId)
         .sort((a, b) => boothNumberCompare(a.booth_number, b.booth_number))
         .map((b) => toDetail(store, b))
+    },
+
+    async getMyProfile(): Promise<Profile | null> {
+      const store = load()
+      const email = sessionStorage.getItem(DEMO_SESSION_KEY)
+      if (!email) return null
+      // exact match first (pending/POC test users); unknown emails act as admin
+      return structuredClone(currentProfile(store))
+    },
+
+    async listSignupAssemblies(): Promise<Assembly[]> {
+      const store = load()
+      return [...store.assemblies].sort((a, b) => a.name.localeCompare(b.name))
+    },
+
+    async listProfiles(): Promise<Profile[]> {
+      const store = load()
+      const me = currentProfile(store)
+      const visible =
+        me.role === 'admin'
+          ? store.profiles
+          : me.role === 'assembly_poc'
+            ? store.profiles.filter((p) => p.assembly_id === me.assembly_id || p.id === me.id)
+            : store.profiles.filter((p) => p.id === me.id)
+      return structuredClone(visible)
+    },
+
+    async approveProfile(userId: string): Promise<void> {
+      const store = load()
+      const me = currentProfile(store)
+      const target = store.profiles.find((p) => p.id === userId)
+      if (!target) throw new Error('User not found')
+      const allowed =
+        me.role === 'admin' || (me.role === 'assembly_poc' && target.assembly_id === me.assembly_id)
+      if (!allowed) throw new Error('அனுமதி இல்லை (not allowed)')
+      target.status = 'approved'
+      persist(store)
+    },
+
+    async rejectProfile(userId: string): Promise<void> {
+      const store = load()
+      const me = currentProfile(store)
+      const target = store.profiles.find((p) => p.id === userId)
+      if (!target) throw new Error('User not found')
+      const allowed =
+        me.role === 'admin' || (me.role === 'assembly_poc' && target.assembly_id === me.assembly_id)
+      if (!allowed) throw new Error('அனுமதி இல்லை (not allowed)')
+      target.status = 'rejected'
+      persist(store)
+    },
+
+    async setProfileRole(userId: string, role: Extract<UserRole, 'assembly_poc' | 'member'>): Promise<void> {
+      const store = load()
+      const me = currentProfile(store)
+      if (me.role !== 'admin') throw new Error('அனுமதி இல்லை (not allowed)')
+      const target = store.profiles.find((p) => p.id === userId)
+      if (!target) throw new Error('User not found')
+      target.role = role
+      persist(store)
     },
   }
 }

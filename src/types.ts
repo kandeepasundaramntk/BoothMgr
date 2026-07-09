@@ -3,6 +3,27 @@ export interface Assembly {
   name: string
 }
 
+export type UserRole = 'admin' | 'assembly_poc' | 'member'
+export type UserStatus = 'pending' | 'approved' | 'rejected'
+
+export interface Profile {
+  id: string
+  email: string
+  full_name: string
+  phone: string
+  role: UserRole
+  status: UserStatus
+  assembly_id: string | null
+}
+
+export interface SignUpInput {
+  full_name: string
+  phone: string
+  email: string
+  password: string
+  assembly_id: string
+}
+
 export interface Booth {
   id: string
   assembly_id: string

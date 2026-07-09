@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { Tabs } from '../components/Tabs'
 import { TeamBadge, TeamChips } from '../components/TeamBadge'
 import { ACTIONS } from '../data/actionsCatalog'
 import { getApi } from '../data/api'
+import { BOOTH_SECTIONS, type BoothSection } from '../data/boothSections'
 import { FIELD_TEAM, matchesTeam, type BoothFieldKey, type TeamFilter } from '../data/teams'
 import { L, useT } from '../i18n'
 import type { ActionStatus, BoothDetail } from '../types'
@@ -25,6 +27,7 @@ export default function BoothPage() {
   const queryClient = useQueryClient()
   const t = useT()
   const [form, setForm] = useState<BoothDetail | null>(null)
+  const [tab, setTab] = useState<BoothSection>('basic')
   const [teamFilter, setTeamFilter] = useState<TeamFilter>('all')
   const [dirty, setDirty] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -122,10 +125,9 @@ export default function BoothPage() {
       </h2>
       {error && <div className="error">{error}</div>}
 
-      <TeamChips value={teamFilter} onChange={setTeamFilter} />
+      <Tabs tabs={BOOTH_SECTIONS} active={tab} onChange={setTab} />
 
-      <h3 className="section">{t('பகுதி 1 — பூத் மட்ட விவரங்கள்', 'Section 1 — Booth Level Details', ' | ')}</h3>
-
+      {tab === 'basic' && (
       <div className="two-col">
         <div className="field">
           <label>
@@ -147,6 +149,11 @@ export default function BoothPage() {
           />
         </div>
       </div>
+      )}
+
+      {tab === 'votes' && (
+      <>
+      <TeamChips value={teamFilter} onChange={setTeamFilter} />
 
       {showField('party_votes') && (
       <div className="field">
@@ -313,6 +320,12 @@ export default function BoothPage() {
         </button>
       </div>
       )}
+      </>
+      )}
+
+      {tab === 'issues' && (
+      <>
+      <TeamChips value={teamFilter} onChange={setTeamFilter} />
 
       {(
         [
@@ -332,11 +345,15 @@ export default function BoothPage() {
               <L ta={ta} en={en} />
               <TeamBadge team={FIELD_TEAM[key]} />
             </label>
-            <textarea value={form.booth[key]} onChange={(e) => update((d) => (d.booth[key] = e.target.value))} />
+            <textarea rows={5} value={form.booth[key]} onChange={(e) => update((d) => (d.booth[key] = e.target.value))} />
           </div>
         ))}
+      </>
+      )}
 
-      <h3 className="section">{t('பகுதி 2 — பூத் மட்டச் செயல்பாடுகள்', 'Section 2 — Booth Level Actions', ' | ')}</h3>
+      {tab === 'actions' && (
+      <>
+      <TeamChips value={teamFilter} onChange={setTeamFilter} />
       <p className="hint" style={{ marginBottom: 10 }}>
         <L
           ta="நிலை மாற்றங்கள் உடனே சேமிக்கப்படும்; குறிப்புகள் வெளியேறும்போது சேமிக்கப்படும்."
@@ -398,7 +415,8 @@ export default function BoothPage() {
                 )}
               </div>
             )}
-            <input
+            <textarea
+              rows={5}
               style={{ width: '100%' }}
               placeholder={t('குறிப்புகள்', 'Notes')}
               defaultValue={st.notes}
@@ -413,6 +431,8 @@ export default function BoothPage() {
           </div>
         )
       })}
+      </>
+      )}
 
       <div className="save-bar no-print">
         <button className="btn" onClick={() => save.mutate(form)} disabled={save.isPending || !dirty}>

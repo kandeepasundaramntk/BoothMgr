@@ -7,6 +7,8 @@ import type {
   BoothDetail,
   BoothImportRow,
   BoothListItem,
+  Profile,
+  UserRole,
 } from '../types'
 import type { DataApi } from './api'
 import { getSupabase } from './supabaseClient'
@@ -200,9 +202,13 @@ export function createSupabaseApi(): DataApi {
     },
 
     async setActionStatus(boothId: string, actionId: number, status: ActionStatus, notes: string): Promise<void> {
+      const { data: session } = await db.auth.getSession()
       const { error } = await db
         .from('booth_actions')
-        .upsert({ booth_id: boothId, action_id: actionId, status, notes }, { onConflict: 'booth_id,action_id' })
+        .upsert(
+          { booth_id: boothId, action_id: actionId, status, notes, updated_by: session.session?.user.id ?? null },
+          { onConflict: 'booth_id,action_id' },
+        )
       if (error) fail(error.message)
     },
 
@@ -263,6 +269,49 @@ export function createSupabaseApi(): DataApi {
       if (error) fail(error.message)
       const booths = ((data ?? []) as Booth[]).sort((a, b) => boothNumberCompare(a.booth_number, b.booth_number))
       return boothDetails(booths)
+    },
+
+    async getMyProfile(): Promise<Profile | null> {
+      const { data: session } = await db.auth.getSession()
+      const userId = session.session?.user.id
+      if (!userId) return null
+      const { data, error } = await db
+        .from('profiles')
+        .select('id, email, full_name, phone, role, status, assembly_id')
+        .eq('id', userId)
+        .maybeSingle()
+      if (error) fail(error.message)
+      return (data as Profile | null) ?? null
+    },
+
+    async listSignupAssemblies(): Promise<Assembly[]> {
+      const { data, error } = await db.rpc('signup_assemblies')
+      if (error) fail(error.message)
+      return (data ?? []) as Assembly[]
+    },
+
+    async listProfiles(): Promise<Profile[]> {
+      const { data, error } = await db
+        .from('profiles')
+        .select('id, email, full_name, phone, role, status, assembly_id')
+        .order('created_at')
+      if (error) fail(error.message)
+      return (data ?? []) as Profile[]
+    },
+
+    async approveProfile(userId: string): Promise<void> {
+      const { error } = await db.rpc('approve_user', { target: userId })
+      if (error) fail(error.message)
+    },
+
+    async rejectProfile(userId: string): Promise<void> {
+      const { error } = await db.rpc('reject_user', { target: userId })
+      if (error) fail(error.message)
+    },
+
+    async setProfileRole(userId: string, role: Extract<UserRole, 'assembly_poc' | 'member'>): Promise<void> {
+      const { error } = await db.rpc('set_user_role', { target: userId, new_role: role })
+      if (error) fail(error.message)
     },
   }
 }
