@@ -57,7 +57,7 @@ export async function exportAssemblyCsv(assemblyId: string, assemblyName: string
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `boothmgr-${assemblyName.replace(/[^\p{L}\p{N}-]+/gu, '_')}-${new Date().toISOString().slice(0, 10)}.csv`
+  a.download = `boothmgr-${assemblyName.replace(/[^\p{L}\p{M}\p{N}-]+/gu, '_')}-${new Date().toISOString().slice(0, 10)}.csv`
   a.click()
   URL.revokeObjectURL(url)
 }

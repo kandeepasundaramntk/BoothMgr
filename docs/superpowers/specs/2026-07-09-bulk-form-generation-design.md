@@ -19,8 +19,10 @@ selected booths of an assembly, as downloadable Word files.
 - Output: one combined .docx per selected team, one booth per page
   (docx section per booth = page break), named like the CSV export:
   `boothmgr-<assembly>-Assembly-POC-forms-<date>.docx` /
-  `boothmgr-<assembly>-IT-Wing-forms-<date>.docx`. Two files download
-  sequentially when both teams are selected.
+  `boothmgr-<assembly>-IT-Wing-forms-<date>.docx`. When both teams are
+  selected the two files ship inside a single .zip — browsers drop the
+  second of two programmatic downloads (the user gesture is spent on the
+  first), which verification confirmed.
 
 ## Form layout (mirrors the hand-made docx forms)
 

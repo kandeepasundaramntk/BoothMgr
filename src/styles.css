@@ -284,6 +284,16 @@ table.data tr.clickable:hover {
   color: #7a5b00;
 }
 
+.forms-panel {
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  background: var(--surface);
+  border-radius: 2px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
 .team-chips {
   display: flex;
   gap: 6px;

@@ -6,6 +6,7 @@ import { TOTAL_ACTIONS } from '../data/actionsCatalog'
 import { getApi } from '../data/api'
 import type { BoothImportRow } from '../types'
 import { exportAssemblyCsv } from '../utils/exportCsv'
+import { generateTeamForms, type FormTeam } from '../utils/generateForms'
 import { healthColor, healthLabel } from '../utils/health'
 
 export default function BoothListPage() {
@@ -19,6 +20,12 @@ export default function BoothListPage() {
   const [newNumber, setNewNumber] = useState('')
   const [newVillage, setNewVillage] = useState('')
   const [exporting, setExporting] = useState(false)
+  // form generation: booths are all selected by default, so track UN-selection
+  const [unselected, setUnselected] = useState<Set<string>>(new Set())
+  const [showForms, setShowForms] = useState(false)
+  const [formTeams, setFormTeams] = useState<Record<FormTeam, boolean>>({ poc: true, itw: true })
+  const [prefilled, setPrefilled] = useState(false)
+  const [generating, setGenerating] = useState(false)
 
   const assemblies = useQuery({
     queryKey: ['assemblies'],
@@ -106,6 +113,43 @@ export default function BoothListPage() {
       b.village_ward_area.toLowerCase().includes(search.toLowerCase()),
   )
 
+  const selectedCount = (booths.data ?? []).filter((b) => !unselected.has(b.id)).length
+  const selectedTeams: FormTeam[] = (['poc', 'itw'] as const).filter((t) => formTeams[t])
+
+  function toggleBooth(id: string) {
+    setUnselected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleAll() {
+    setUnselected((prev) => (prev.size === 0 ? new Set((booths.data ?? []).map((b) => b.id)) : new Set()))
+  }
+
+  async function onGenerateForms() {
+    if (selectedCount === 0 || selectedTeams.length === 0) return
+    setGenerating(true)
+    setError(null)
+    try {
+      const api = await getApi()
+      const details = (await api.getAssemblyExport(assemblyId!)).filter((d) => !unselected.has(d.booth.id))
+      await generateTeamForms({
+        assemblyName: assembly?.name ?? 'assembly',
+        details,
+        teams: selectedTeams,
+        prefilled,
+      })
+      setMessage(`${details.length} வாக்குச்சாவடிகளுக்கு ${selectedTeams.length} கோப்பு(கள்) உருவாக்கப்பட்டன (form files generated)`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setGenerating(false)
+    }
+  }
+
   return (
     <div className="card">
       <h2 className="page-title">
@@ -123,6 +167,9 @@ export default function BoothListPage() {
         <Link className="btn small secondary" to={`/assembly/${assemblyId}/dashboard`}>
           டாஷ்போர்டு / Dashboard
         </Link>
+        <button className="btn small secondary" onClick={() => setShowForms((v) => !v)}>
+          படிவங்கள் / Forms
+        </button>
         <button className="btn small secondary" onClick={() => void onExport()} disabled={exporting}>
           {exporting ? '…' : 'CSV பதிவிறக்கு / Export'}
         </button>
@@ -134,6 +181,48 @@ export default function BoothListPage() {
       <p className="hint" style={{ marginBottom: 10 }}>
         CSV headers: <code>Booth Number</code>, <code>Village / Ward / Area</code>
       </p>
+
+      {showForms && (
+        <div className="forms-panel">
+          <strong>படிவங்கள் உருவாக்கு (Generate booth forms)</strong>
+          <div className="toolbar" style={{ margin: '8px 0 0' }}>
+            <span>அணி (Team):</span>
+            {(['poc', 'itw'] as const).map((t) => (
+              <label key={t}>
+                <input
+                  type="checkbox"
+                  checked={formTeams[t]}
+                  onChange={(e) => setFormTeams((prev) => ({ ...prev, [t]: e.target.checked }))}
+                />{' '}
+                {t === 'poc' ? 'தொகுதி பொறுப்பாளர் (Assembly POC)' : 'இணையக் குழு (IT Wing)'}
+              </label>
+            ))}
+          </div>
+          <div className="toolbar" style={{ margin: '6px 0 0' }}>
+            <span>உள்ளடக்கம் (Content):</span>
+            <label>
+              <input type="radio" name="form-content" checked={!prefilled} onChange={() => setPrefilled(false)} />{' '}
+              வெற்றுப் படிவம் (blank)
+            </label>
+            <label>
+              <input type="radio" name="form-content" checked={prefilled} onChange={() => setPrefilled(true)} />{' '}
+              பதிவிட்ட தரவுகளுடன் (pre-filled)
+            </label>
+          </div>
+          <div className="toolbar" style={{ margin: '8px 0 0' }}>
+            <button
+              className="btn small"
+              onClick={() => void onGenerateForms()}
+              disabled={generating || selectedCount === 0 || selectedTeams.length === 0}
+            >
+              {generating ? '…' : `உருவாக்கு / Generate (${selectedCount} booths)`}
+            </button>
+            <span className="hint">
+              ஒரு அணிக்கு ஒரு Word கோப்பு; ஒரு பூத்துக்கு ஒரு பக்கம். (One .docx per team, one page per booth.)
+            </span>
+          </div>
+        </div>
+      )}
 
       {message && <p className="hint" style={{ color: 'var(--ok)', marginBottom: 8 }}>{message}</p>}
       {error && <div className="error">{error}</div>}
@@ -151,6 +240,14 @@ export default function BoothListPage() {
         <table className="data">
           <thead>
             <tr>
+              <th style={{ width: 30 }}>
+                <input
+                  type="checkbox"
+                  aria-label="அனைத்தையும் தேர்வுசெய் (select all booths)"
+                  checked={unselected.size === 0}
+                  onChange={toggleAll}
+                />
+              </th>
               <th>
                 எண் <span className="en">(No.)</span>
               </th>
@@ -168,6 +265,14 @@ export default function BoothListPage() {
           <tbody>
             {filtered.map((b) => (
               <tr key={b.id} className="clickable" onClick={() => navigate(`/booth/${b.id}`)}>
+                <td onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    aria-label={`பூத் ${b.booth_number} தேர்வு (select booth)`}
+                    checked={!unselected.has(b.id)}
+                    onChange={() => toggleBooth(b.id)}
+                  />
+                </td>
                 <td>{b.booth_number}</td>
                 <td>{b.village_ward_area}</td>
                 <td className="health-cell">
