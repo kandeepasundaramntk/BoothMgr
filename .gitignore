@@ -9,12 +9,14 @@ dist/
 .env.*.local
 
 # real voter data must never be committed (see CLAUDE.md — Data Sensitivity)
-data/
+# anchored to the repo root: src/data/ is application code and must be tracked
+/data/
 *.csv
 exports/
 
 # editor / OS
 .DS_Store
+~$*
 *.local
 .vscode/
 .idea/
