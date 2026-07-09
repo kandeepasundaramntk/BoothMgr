@@ -22,12 +22,11 @@ booth-level campaign actions per booth, and provides assembly dashboards.
 
 ### Demo mode (no Supabase)
 
-```
-VITE_DEMO=1 npm run dev
-```
-
-Runs entirely in the browser with fictional seed data (localStorage). Any
-email/password signs in. For evaluation only.
+Plain `npm run dev` with no Supabase keys configured automatically runs in
+demo mode (`VITE_DEMO=1 npm run dev` forces it even when keys exist). Runs
+entirely in the browser with fictional seed data (localStorage). Any
+email/password signs in. For evaluation only — production builds without
+keys show a not-configured error instead.
 
 ## Commands
 

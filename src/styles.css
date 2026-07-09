@@ -284,6 +284,11 @@ table.data tr.clickable:hover {
   color: #7a5b00;
 }
 
+.blank-line {
+  border-bottom: 1px solid #888;
+  height: 26px;
+}
+
 .forms-panel {
   border: 1px solid var(--line);
   border-left: 4px solid var(--accent);

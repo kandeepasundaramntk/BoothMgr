@@ -5,6 +5,7 @@ import { TeamBadge, TeamChips } from '../components/TeamBadge'
 import { ACTIONS, TOTAL_ACTIONS } from '../data/actionsCatalog'
 import { getApi } from '../data/api'
 import { matchesTeam, type TeamFilter } from '../data/teams'
+import { L, useT } from '../i18n'
 import { healthColor, healthLabel } from '../utils/health'
 
 // Status palette (dataviz skill): meaning is never color-alone — every bar row
@@ -44,6 +45,7 @@ function StackedBar({ done, inProgress, notStarted }: { done: number; inProgress
 export default function DashboardPage() {
   const { assemblyId } = useParams<{ assemblyId: string }>()
   const navigate = useNavigate()
+  const t = useT()
   const [teamFilter, setTeamFilter] = useState<TeamFilter>('all')
 
   const assemblies = useQuery({
@@ -74,23 +76,23 @@ export default function DashboardPage() {
   return (
     <div>
       <div className="toolbar">
-        <Link to={`/assembly/${assemblyId}`}>← வாக்குச்சாவடிகள் / Booths</Link>
+        <Link to={`/assembly/${assemblyId}`}>← {t('வாக்குச்சாவடிகள்', 'Booths')}</Link>
       </div>
       <h2 className="page-title">
-        {assembly?.name ?? '…'} — டாஷ்போர்டு <span className="en">(Dashboard)</span>
+        {assembly?.name ?? '…'} — <L ta="டாஷ்போர்டு" en="Dashboard" />
       </h2>
       {err != null && <div className="error">{String(err)}</div>}
 
       <div className="dash-tiles">
         <div className="tile">
           <div className="label">
-            வாக்குச்சாவடிகள் <span className="en">(Booths)</span>
+            <L ta="வாக்குச்சாவடிகள்" en="Booths" />
           </div>
           <div className="value">{boothCount}</div>
         </div>
         <div className="tile">
           <div className="label">
-            சராசரி ஆதரவு <span className="en">(Avg committed)</span>
+            <L ta="சராசரி ஆதரவு" en="Avg committed" />
           </div>
           <div className="value" style={{ color: COLOR_DONE }}>
             {fmtPct(summary.data?.avg_committed_pct ?? null)}
@@ -98,7 +100,7 @@ export default function DashboardPage() {
         </div>
         <div className="tile">
           <div className="label">
-            சராசரி நடுநிலை <span className="en">(Avg swing)</span>
+            <L ta="சராசரி நடுநிலை" en="Avg swing" />
           </div>
           <div className="value" style={{ color: '#8a6d00' }}>
             {fmtPct(summary.data?.avg_swing_pct ?? null)}
@@ -106,7 +108,7 @@ export default function DashboardPage() {
         </div>
         <div className="tile">
           <div className="label">
-            சராசரி எதிர்ப்பு <span className="en">(Avg opponent)</span>
+            <L ta="சராசரி எதிர்ப்பு" en="Avg opponent" />
           </div>
           <div className="value" style={{ color: 'var(--accent)' }}>
             {fmtPct(summary.data?.avg_opponent_pct ?? null)}
@@ -116,22 +118,32 @@ export default function DashboardPage() {
 
       <div className="card">
         <h3 style={{ marginBottom: 8 }}>
-          கவனம் தேவைப்படும் வாக்குச்சாவடிகள் <span className="en">(Weakest booths — lowest committed %)</span>
+          <L ta="கவனம் தேவைப்படும் வாக்குச்சாவடிகள்" en="Weakest booths — lowest committed %" />
         </h3>
         {weakest.data && weakest.data.length === 0 && (
           <p className="hint">
-            ஆரோக்கிய மதிப்பெண் பதிவிடப்படவில்லை. (No booth health scores recorded yet — set Committed/Swing/Opponent
-            % on action 10 of each booth.)
+            <L
+              ta="ஆரோக்கிய மதிப்பெண் பதிவிடப்படவில்லை."
+              en="No booth health scores recorded yet — set Committed/Swing/Opponent % on action 10 of each booth."
+            />
           </p>
         )}
         {weakest.data && weakest.data.length > 0 && (
           <table className="data">
             <thead>
               <tr>
-                <th>எண் (No.)</th>
-                <th>கிராமம் / பகுதி (Village)</th>
-                <th>ஆதரவு % (Committed)</th>
-                <th>முன்னேற்றம் (Progress)</th>
+                <th>
+                  <L ta="எண்" en="No." />
+                </th>
+                <th>
+                  <L ta="கிராமம் / பகுதி" en="Village" />
+                </th>
+                <th>
+                  <L ta="ஆதரவு %" en="Committed" />
+                </th>
+                <th>
+                  <L ta="முன்னேற்றம்" en="Progress" />
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -156,7 +168,7 @@ export default function DashboardPage() {
 
       <div className="card">
         <h3 style={{ marginBottom: 4 }}>
-          செயல்பாடுகளின் முன்னேற்றம் <span className="en">(Action progress across {boothCount} booths)</span>
+          <L ta="செயல்பாடுகளின் முன்னேற்றம்" en={`Action progress across ${boothCount} booths`} />
         </h3>
         <TeamChips value={teamFilter} onChange={setTeamFilter} />
         <div className="toolbar" style={{ fontSize: 12, marginBottom: 10 }}>
@@ -172,7 +184,7 @@ export default function DashboardPage() {
                 verticalAlign: -1,
               }}
             />
-            முடிந்தது (Done)
+            <L ta="முடிந்தது" en="Done" />
           </span>
           <span>
             <span
@@ -187,7 +199,7 @@ export default function DashboardPage() {
                 boxShadow: 'inset 0 0 0 1px rgba(11,11,11,0.10)',
               }}
             />
-            நடைபெறுகிறது (In progress)
+            <L ta="நடைபெறுகிறது" en="In progress" />
           </span>
           <span>
             <span
@@ -202,16 +214,22 @@ export default function DashboardPage() {
                 boxShadow: 'inset 0 0 0 1px rgba(11,11,11,0.10)',
               }}
             />
-            தொடங்கப்படவில்லை (Not started)
+            <L ta="தொடங்கப்படவில்லை" en="Not started" />
           </span>
         </div>
         {progress.data && (
           <table className="data">
             <thead>
               <tr>
-                <th style={{ width: '40%' }}>செயல்பாடு (Action)</th>
-                <th>நிலை (Status)</th>
-                <th style={{ width: 170 }}>எண்ணிக்கை (Counts)</th>
+                <th style={{ width: '40%' }}>
+                  <L ta="செயல்பாடு" en="Action" />
+                </th>
+                <th>
+                  <L ta="நிலை" en="Status" />
+                </th>
+                <th style={{ width: 170 }}>
+                  <L ta="எண்ணிக்கை" en="Counts" />
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -225,9 +243,13 @@ export default function DashboardPage() {
                 return (
                   <tr key={row.action_id}>
                     <td>
-                      <strong>{row.action_id}.</strong> {action?.title_ta}{' '}
-                      <span className="en">({action?.title_en})</span>
-                      {action && <TeamBadge team={action.team} />}
+                      <strong>{row.action_id}.</strong>{' '}
+                      {action && (
+                        <>
+                          <L ta={action.title_ta} en={action.title_en} />
+                          <TeamBadge team={action.team} />
+                        </>
+                      )}
                     </td>
                     <td>
                       <StackedBar

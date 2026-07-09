@@ -5,6 +5,7 @@ import { TeamBadge, TeamChips } from '../components/TeamBadge'
 import { ACTIONS } from '../data/actionsCatalog'
 import { getApi } from '../data/api'
 import { FIELD_TEAM, matchesTeam, type BoothFieldKey, type TeamFilter } from '../data/teams'
+import { L, useT } from '../i18n'
 import type { ActionStatus, BoothDetail } from '../types'
 
 const STATUS_OPTIONS: { value: ActionStatus; ta: string; en: string }[] = [
@@ -22,6 +23,7 @@ function pctWarning(sum: number, label: string): string | null {
 export default function BoothPage() {
   const { boothId } = useParams<{ boothId: string }>()
   const queryClient = useQueryClient()
+  const t = useT()
   const [form, setForm] = useState<BoothDetail | null>(null)
   const [teamFilter, setTeamFilter] = useState<TeamFilter>('all')
   const [dirty, setDirty] = useState(false)
@@ -108,10 +110,10 @@ export default function BoothPage() {
   return (
     <div className="card">
       <div className="toolbar no-print">
-        <Link to={`/assembly/${form.booth.assembly_id}`}>← வாக்குச்சாவடிகள் / Booths</Link>
+        <Link to={`/assembly/${form.booth.assembly_id}`}>← {t('வாக்குச்சாவடிகள்', 'Booths')}</Link>
         <span className="grow" />
         <Link className="btn small secondary" to={`/booth/${boothId}/print`}>
-          🖨️ அச்சு / Print view
+          🖨️ {t('அச்சு', 'Print view')}
         </Link>
       </div>
 
@@ -122,12 +124,12 @@ export default function BoothPage() {
 
       <TeamChips value={teamFilter} onChange={setTeamFilter} />
 
-      <h3 className="section">பகுதி 1 — பூத் மட்ட விவரங்கள் | Section 1 — Booth Level Details</h3>
+      <h3 className="section">{t('பகுதி 1 — பூத் மட்ட விவரங்கள்', 'Section 1 — Booth Level Details', ' | ')}</h3>
 
       <div className="two-col">
         <div className="field">
           <label>
-            வாக்குச்சாவடி எண் <span className="en">(Booth Number)</span>
+            <L ta="வாக்குச்சாவடி எண்" en="Booth Number" />
           </label>
           <input
             value={form.booth.booth_number}
@@ -136,7 +138,7 @@ export default function BoothPage() {
         </div>
         <div className="field">
           <label>
-            கிராமம் / வார்டு / பகுதி <span className="en">(Village / Ward / Area)</span>
+            <L ta="கிராமம் / வார்டு / பகுதி" en="Village / Ward / Area" />
           </label>
           <input
             value={form.booth.village_ward_area}
@@ -149,13 +151,13 @@ export default function BoothPage() {
       {showField('party_votes') && (
       <div className="field">
         <label>
-          கட்சி வாரியாக பதிவான வாக்குகள் — 2026 <span className="en">(2026 — Polled votes, party wise)</span>
+          <L ta="கட்சி வாரியாக பதிவான வாக்குகள் — 2026" en="2026 — Polled votes, party wise" />
           <TeamBadge team={FIELD_TEAM.party_votes} />
         </label>
         {form.partyVotes.map((v, i) => (
           <div className="repeat-row" key={i}>
             <input
-              placeholder="கட்சி / Party"
+              placeholder={t('கட்சி', 'Party')}
               value={v.party_name}
               onChange={(e) => update((d) => (d.partyVotes[i].party_name = e.target.value))}
             />
@@ -163,7 +165,7 @@ export default function BoothPage() {
               className="num"
               type="number"
               min={0}
-              placeholder="வாக்குகள்"
+              placeholder={t('வாக்குகள்', 'Votes')}
               value={v.votes || ''}
               onChange={(e) => update((d) => (d.partyVotes[i].votes = Number(e.target.value)))}
             />
@@ -181,7 +183,7 @@ export default function BoothPage() {
           className="btn small secondary"
           onClick={() => update((d) => d.partyVotes.push({ party_name: '', votes: 0 }))}
         >
-          + கட்சி சேர் / Add party
+          + {t('கட்சி சேர்', 'Add party')}
         </button>
       </div>
       )}
@@ -190,13 +192,13 @@ export default function BoothPage() {
         {showField('castes') && (
         <div className="field">
           <label>
-            சாதி விகிதம் (%) <span className="en">(% of Caste)</span>
+            <L ta="சாதி விகிதம் (%)" en="% of Caste" />
             <TeamBadge team={FIELD_TEAM.castes} />
           </label>
           {form.castes.map((c, i) => (
             <div className="repeat-row" key={i}>
               <input
-                placeholder="சாதி / Caste"
+                placeholder={t('சாதி', 'Caste')}
                 value={c.caste_name}
                 onChange={(e) => update((d) => (d.castes[i].caste_name = e.target.value))}
               />
@@ -219,7 +221,7 @@ export default function BoothPage() {
             className="btn small secondary"
             onClick={() => update((d) => d.castes.push({ caste_name: '', pct: 0 }))}
           >
-            + சேர் / Add
+            + {t('சேர்', 'Add')}
           </button>
           {pctWarning(casteSum, 'சாதி விகிதம்') && <p className="warn-text">{pctWarning(casteSum, 'சாதி விகிதம்')}</p>}
         </div>
@@ -228,13 +230,13 @@ export default function BoothPage() {
         {showField('religions') && (
         <div className="field">
           <label>
-            மத விகிதம் (%) <span className="en">(% of Religion)</span>
+            <L ta="மத விகிதம் (%)" en="% of Religion" />
             <TeamBadge team={FIELD_TEAM.religions} />
           </label>
           {form.religions.map((r, i) => (
             <div className="repeat-row" key={i}>
               <input
-                placeholder="மதம் / Religion"
+                placeholder={t('மதம்', 'Religion')}
                 value={r.religion_name}
                 onChange={(e) => update((d) => (d.religions[i].religion_name = e.target.value))}
               />
@@ -261,7 +263,7 @@ export default function BoothPage() {
             className="btn small secondary"
             onClick={() => update((d) => d.religions.push({ religion_name: '', pct: 0 }))}
           >
-            + சேர் / Add
+            + {t('சேர்', 'Add')}
           </button>
           {pctWarning(religionSum, 'மத விகிதம்') && (
             <p className="warn-text">{pctWarning(religionSum, 'மத விகிதம்')}</p>
@@ -273,23 +275,23 @@ export default function BoothPage() {
       {showField('influencers') && (
       <div className="field">
         <label>
-          உள்ளூர் செல்வாக்குள்ளவர்கள் — பெயர் & தொடர்பு <span className="en">(Micro-Influencers, name & contact)</span>
+          <L ta="உள்ளூர் செல்வாக்குள்ளவர்கள் — பெயர் & தொடர்பு" en="Micro-Influencers, name & contact" />
           <TeamBadge team={FIELD_TEAM.influencers} />
         </label>
         {form.influencers.map((f, i) => (
           <div className="repeat-row" key={i}>
             <input
-              placeholder="பெயர் / Name"
+              placeholder={t('பெயர்', 'Name')}
               value={f.name}
               onChange={(e) => update((d) => (d.influencers[i].name = e.target.value))}
             />
             <input
-              placeholder="தொடர்பு / Contact"
+              placeholder={t('தொடர்பு', 'Contact')}
               value={f.contact}
               onChange={(e) => update((d) => (d.influencers[i].contact = e.target.value))}
             />
             <input
-              placeholder="பங்கு / Role"
+              placeholder={t('பங்கு', 'Role')}
               value={f.role_note}
               onChange={(e) => update((d) => (d.influencers[i].role_note = e.target.value))}
             />
@@ -307,7 +309,7 @@ export default function BoothPage() {
           className="btn small secondary"
           onClick={() => update((d) => d.influencers.push({ name: '', contact: '', role_note: '' }))}
         >
-          + சேர் / Add
+          + {t('சேர்', 'Add')}
         </button>
       </div>
       )}
@@ -327,17 +329,19 @@ export default function BoothPage() {
         .map(([key, ta, en]) => (
           <div className="field" key={key}>
             <label>
-              {ta} <span className="en">({en})</span>
+              <L ta={ta} en={en} />
               <TeamBadge team={FIELD_TEAM[key]} />
             </label>
             <textarea value={form.booth[key]} onChange={(e) => update((d) => (d.booth[key] = e.target.value))} />
           </div>
         ))}
 
-      <h3 className="section">பகுதி 2 — பூத் மட்டச் செயல்பாடுகள் | Section 2 — Booth Level Actions</h3>
+      <h3 className="section">{t('பகுதி 2 — பூத் மட்டச் செயல்பாடுகள்', 'Section 2 — Booth Level Actions', ' | ')}</h3>
       <p className="hint" style={{ marginBottom: 10 }}>
-        நிலை மாற்றங்கள் உடனே சேமிக்கப்படும்; குறிப்புகள் வெளியேறும்போது சேமிக்கப்படும். (Status changes save
-        instantly; notes save when you leave the field.)
+        <L
+          ta="நிலை மாற்றங்கள் உடனே சேமிக்கப்படும்; குறிப்புகள் வெளியேறும்போது சேமிக்கப்படும்."
+          en="Status changes save instantly; notes save when you leave the field."
+        />
       </p>
 
       {ACTIONS.filter((action) => matchesTeam(action.team, teamFilter)).map((action) => {
@@ -346,8 +350,9 @@ export default function BoothPage() {
           <div className="action-item" key={action.id}>
             <div className="title-row">
               <span className="num">{action.id}.</span>
-              <span className="title">{action.title_ta}</span>
-              <span className="en">({action.title_en})</span>
+              <span className="title">
+                <L ta={action.title_ta} en={action.title_en} />
+              </span>
               <TeamBadge team={action.team} />
             </div>
             <div className="desc">{action.description_ta}</div>
@@ -363,7 +368,7 @@ export default function BoothPage() {
                       actionMutation.mutate({ actionId: action.id, status: opt.value, notes: st.notes })
                     }}
                   />
-                  {opt.ta} <span className="en">({opt.en})</span>
+                  <L ta={opt.ta} en={opt.en} />
                 </label>
               ))}
             </div>
@@ -395,7 +400,7 @@ export default function BoothPage() {
             )}
             <input
               style={{ width: '100%' }}
-              placeholder="குறிப்புகள் / Notes"
+              placeholder={t('குறிப்புகள்', 'Notes')}
               defaultValue={st.notes}
               key={`notes-${action.id}-${st.notes}`}
               onBlur={(e) => {
@@ -411,12 +416,16 @@ export default function BoothPage() {
 
       <div className="save-bar no-print">
         <button className="btn" onClick={() => save.mutate(form)} disabled={save.isPending || !dirty}>
-          {save.isPending ? 'சேமிக்கிறது…' : 'சேமி / Save'}
+          {save.isPending ? '…' : t('சேமி', 'Save')}
         </button>
-        {dirty && <span className="warn-text">சேமிக்கப்படாத மாற்றங்கள் உள்ளன (unsaved changes)</span>}
+        {dirty && (
+          <span className="warn-text">
+            <L ta="சேமிக்கப்படாத மாற்றங்கள் உள்ளன" en="unsaved changes" />
+          </span>
+        )}
         {!dirty && savedAt && (
           <span className="hint" style={{ color: 'var(--ok)' }}>
-            சேமிக்கப்பட்டது (saved) {savedAt.toLocaleTimeString()}
+            <L ta="சேமிக்கப்பட்டது" en="saved" /> {savedAt.toLocaleTimeString()}
           </span>
         )}
       </div>

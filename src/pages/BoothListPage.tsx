@@ -6,6 +6,7 @@ import { TOTAL_ACTIONS } from '../data/actionsCatalog'
 import { getApi } from '../data/api'
 import type { BoothImportRow } from '../types'
 import { exportAssemblyCsv } from '../utils/exportCsv'
+import { L, useT } from '../i18n'
 import { generateTeamForms, type FormTeam } from '../utils/generateForms'
 import { healthColor, healthLabel } from '../utils/health'
 
@@ -13,6 +14,7 @@ export default function BoothListPage() {
   const { assemblyId } = useParams<{ assemblyId: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const t = useT()
   const fileRef = useRef<HTMLInputElement>(null)
   const [search, setSearch] = useState('')
   const [message, setMessage] = useState<string | null>(null)
@@ -153,28 +155,28 @@ export default function BoothListPage() {
   return (
     <div className="card">
       <h2 className="page-title">
-        {assembly?.name ?? '…'} — வாக்குச்சாவடிகள் <span className="en">(Booths)</span>
+        {assembly?.name ?? '…'} — <L ta="வாக்குச்சாவடிகள்" en="Booths" />
       </h2>
 
       <div className="toolbar">
         <input
-          placeholder="தேடு: எண் / கிராமம் (search booth no. or village)"
+          placeholder={t('தேடு: எண் / கிராமம்', 'search booth no. or village', ' — ')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{ minWidth: 240 }}
         />
         <span className="grow" />
         <Link className="btn small secondary" to={`/assembly/${assemblyId}/dashboard`}>
-          டாஷ்போர்டு / Dashboard
+          {t('டாஷ்போர்டு', 'Dashboard')}
         </Link>
         <button className="btn small secondary" onClick={() => setShowForms((v) => !v)}>
-          படிவங்கள் / Forms
+          {t('படிவங்கள்', 'Forms')}
         </button>
         <button className="btn small secondary" onClick={() => void onExport()} disabled={exporting}>
-          {exporting ? '…' : 'CSV பதிவிறக்கு / Export'}
+          {exporting ? '…' : t('CSV பதிவிறக்கு', 'Export')}
         </button>
         <button className="btn small" onClick={() => fileRef.current?.click()} disabled={importMutation.isPending}>
-          CSV இறக்குமதி / Import
+          {t('CSV இறக்குமதி', 'Import')}
         </button>
         <input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={onCsvChosen} />
       </div>
@@ -184,29 +186,39 @@ export default function BoothListPage() {
 
       {showForms && (
         <div className="forms-panel">
-          <strong>படிவங்கள் உருவாக்கு (Generate booth forms)</strong>
+          <strong>
+            <L ta="படிவங்கள் உருவாக்கு" en="Generate booth forms" />
+          </strong>
           <div className="toolbar" style={{ margin: '8px 0 0' }}>
-            <span>அணி (Team):</span>
-            {(['poc', 'itw'] as const).map((t) => (
-              <label key={t}>
+            <span>
+              <L ta="அணி" en="Team" />:
+            </span>
+            {(['poc', 'itw'] as const).map((team) => (
+              <label key={team}>
                 <input
                   type="checkbox"
-                  checked={formTeams[t]}
-                  onChange={(e) => setFormTeams((prev) => ({ ...prev, [t]: e.target.checked }))}
+                  checked={formTeams[team]}
+                  onChange={(e) => setFormTeams((prev) => ({ ...prev, [team]: e.target.checked }))}
                 />{' '}
-                {t === 'poc' ? 'தொகுதி பொறுப்பாளர் (Assembly POC)' : 'இணையக் குழு (IT Wing)'}
+                {team === 'poc' ? (
+                  <L ta="தொகுதி பொறுப்பாளர்" en="Assembly POC" />
+                ) : (
+                  <L ta="இணையக் குழு" en="IT Wing" />
+                )}
               </label>
             ))}
           </div>
           <div className="toolbar" style={{ margin: '6px 0 0' }}>
-            <span>உள்ளடக்கம் (Content):</span>
+            <span>
+              <L ta="உள்ளடக்கம்" en="Content" />:
+            </span>
             <label>
               <input type="radio" name="form-content" checked={!prefilled} onChange={() => setPrefilled(false)} />{' '}
-              வெற்றுப் படிவம் (blank)
+              <L ta="வெற்றுப் படிவம்" en="blank" />
             </label>
             <label>
               <input type="radio" name="form-content" checked={prefilled} onChange={() => setPrefilled(true)} />{' '}
-              பதிவிட்ட தரவுகளுடன் (pre-filled)
+              <L ta="பதிவிட்ட தரவுகளுடன்" en="pre-filled" />
             </label>
           </div>
           <div className="toolbar" style={{ margin: '8px 0 0' }}>
@@ -215,10 +227,10 @@ export default function BoothListPage() {
               onClick={() => void onGenerateForms()}
               disabled={generating || selectedCount === 0 || selectedTeams.length === 0}
             >
-              {generating ? '…' : `உருவாக்கு / Generate (${selectedCount} booths)`}
+              {generating ? '…' : `${t('உருவாக்கு', 'Generate')} (${selectedCount} booths)`}
             </button>
             <span className="hint">
-              ஒரு அணிக்கு ஒரு Word கோப்பு; ஒரு பூத்துக்கு ஒரு பக்கம். (One .docx per team, one page per booth.)
+              <L ta="ஒரு அணிக்கு ஒரு Word கோப்பு; ஒரு பூத்துக்கு ஒரு பக்கம்." en="One .docx per team, one page per booth." />
             </span>
           </div>
         </div>
@@ -231,8 +243,10 @@ export default function BoothListPage() {
 
       {booths.data && booths.data.length === 0 && (
         <p className="hint">
-          வாக்குச்சாவடிகள் இல்லை — CSV மூலம் இறக்குமதி செய்யவும் அல்லது கீழே சேர்க்கவும். (No booths yet — import a CSV
-          or add one below.)
+          <L
+            ta="வாக்குச்சாவடிகள் இல்லை — CSV மூலம் இறக்குமதி செய்யவும் அல்லது கீழே சேர்க்கவும்."
+            en="No booths yet — import a CSV or add one below."
+          />
         </p>
       )}
 
@@ -249,16 +263,16 @@ export default function BoothListPage() {
                 />
               </th>
               <th>
-                எண் <span className="en">(No.)</span>
+                <L ta="எண்" en="No." />
               </th>
               <th>
-                கிராமம் / வார்டு / பகுதி <span className="en">(Village / Ward / Area)</span>
+                <L ta="கிராமம் / வார்டு / பகுதி" en="Village / Ward / Area" />
               </th>
               <th>
-                முன்னேற்றம் <span className="en">(Progress)</span>
+                <L ta="முன்னேற்றம்" en="Progress" />
               </th>
               <th>
-                ஆரோக்கியம் <span className="en">(Health)</span>
+                <L ta="ஆரோக்கியம்" en="Health" />
               </th>
             </tr>
           </thead>
@@ -276,8 +290,13 @@ export default function BoothListPage() {
                 <td>{b.booth_number}</td>
                 <td>{b.village_ward_area}</td>
                 <td className="health-cell">
-                  {b.done_count}/{TOTAL_ACTIONS} முடிந்தது
-                  {b.in_progress_count > 0 && <span className="hint"> · {b.in_progress_count} நடைபெறுகிறது</span>}
+                  {b.done_count}/{TOTAL_ACTIONS} {t('முடிந்தது', 'done')}
+                  {b.in_progress_count > 0 && (
+                    <span className="hint">
+                      {' '}
+                      · {b.in_progress_count} {t('நடைபெறுகிறது', 'in progress')}
+                    </span>
+                  )}
                 </td>
                 <td>
                   <span className="pill" style={{ background: healthColor(b.committed_pct) }}>
@@ -292,19 +311,19 @@ export default function BoothListPage() {
 
       <form className="toolbar" style={{ marginTop: 14 }} onSubmit={onAddBooth}>
         <input
-          placeholder="பூத் எண் / Booth no."
+          placeholder={t('பூத் எண்', 'Booth no.')}
           value={newNumber}
           onChange={(e) => setNewNumber(e.target.value)}
           style={{ width: 130 }}
         />
         <input
-          placeholder="கிராமம் / வார்டு / Village"
+          placeholder={t('கிராமம் / வார்டு', 'Village')}
           value={newVillage}
           onChange={(e) => setNewVillage(e.target.value)}
           style={{ minWidth: 200 }}
         />
         <button className="btn" type="submit" disabled={createMutation.isPending || !newNumber.trim()}>
-          பூத் சேர் / Add booth
+          {t('பூத் சேர்', 'Add booth')}
         </button>
       </form>
     </div>

@@ -2,9 +2,11 @@ import { useState, type FormEvent } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { hasSupabaseConfig, isDemoMode } from '../data/api'
+import { L, useT } from '../i18n'
 
 export default function LoginPage() {
   const { signedIn, signIn } = useAuth()
+  const t = useT()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -29,7 +31,7 @@ export default function LoginPage() {
 
   return (
     <div className="login-wrap card">
-      <h2 className="page-title">BoothMgr — உள்நுழைவு / Sign in</h2>
+      <h2 className="page-title">BoothMgr — {t('உள்நுழைவு', 'Sign in')}</h2>
       {isDemoMode && (
         <p className="hint" style={{ marginBottom: 12 }}>
           Demo mode: any email/password works; data stays in this browser.
@@ -45,7 +47,7 @@ export default function LoginPage() {
       <form onSubmit={(e) => void onSubmit(e)}>
         <div className="field">
           <label>
-            மின்னஞ்சல் <span className="en">(Email)</span>
+            <L ta="மின்னஞ்சல்" en="Email" />
           </label>
           <input
             type="email"
@@ -57,7 +59,7 @@ export default function LoginPage() {
         </div>
         <div className="field">
           <label>
-            கடவுச்சொல் <span className="en">(Password)</span>
+            <L ta="கடவுச்சொல்" en="Password" />
           </label>
           <input
             type="password"
@@ -68,7 +70,7 @@ export default function LoginPage() {
           />
         </div>
         <button className="btn" type="submit" disabled={busy || !configured}>
-          {busy ? '…' : 'உள்நுழை / Sign in'}
+          {busy ? '…' : t('உள்நுழை', 'Sign in')}
         </button>
       </form>
     </div>
