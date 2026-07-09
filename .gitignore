@@ -1,6 +1,7 @@
 # dependencies / build
 node_modules/
 dist/
+.vite/
 *.tsbuildinfo
 
 # environment & secrets — Supabase keys live here, never commit
