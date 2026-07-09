@@ -22,7 +22,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let unsubscribe: (() => void) | undefined
     async function init() {
       if (isDemoMode) {
-        setEmail(sessionStorage.getItem(DEMO_SESSION_KEY))
+        let session = sessionStorage.getItem(DEMO_SESSION_KEY)
+        if (!session) {
+          session = 'demo@example.com'
+          sessionStorage.setItem(DEMO_SESSION_KEY, session)
+        }
+        setEmail(session)
         setLoading(false)
         return
       }
