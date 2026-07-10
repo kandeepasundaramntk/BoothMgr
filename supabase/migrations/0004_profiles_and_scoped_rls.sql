@@ -1,12 +1,15 @@
 -- 0004: user profiles, roles, approval workflow, per-assembly scoped RLS.
 --
--- Roles: admin (everything), assembly_poc (one assembly + approves its
--- members), member (one assembly). New signups start as pending members and
--- see no data until an admin or their assembly's POC approves them.
+-- Roles: superadmin (everything admin can do, plus owns the assembly list
+-- and the admin/superadmin roster), admin (approves users, promotes/
+-- demotes assembly_poc/member — cannot touch assemblies or admin/
+-- superadmin roles), assembly_poc (one assembly + approves its members),
+-- member (one assembly). New signups start as pending members and see no
+-- data until an admin/superadmin or their assembly's POC approves them.
 --
--- FIRST-ADMIN BOOTSTRAP: after applying this migration, sign up through the
--- app, then run in the Supabase SQL editor:
---   update profiles set role = 'admin', status = 'approved', assembly_id = null,
+-- FIRST-SUPERADMIN BOOTSTRAP: after applying this migration, sign up
+-- through the app, then run in the Supabase SQL editor:
+--   update profiles set role = 'superadmin', status = 'approved', assembly_id = null,
 --     approved_at = now()
 --   where email = 'you@example.org';
 --
@@ -15,7 +18,7 @@
 -- confirmation off signUp returns a live session so the app can drop straight
 -- to the waiting-for-approval screen.
 
-create type user_role as enum ('admin', 'assembly_poc', 'member');
+create type user_role as enum ('superadmin', 'admin', 'assembly_poc', 'member');
 create type user_status as enum ('pending', 'approved', 'rejected');
 
 create table profiles (
@@ -76,9 +79,13 @@ create function app_assembly() returns uuid
 language sql stable security definer set search_path = public as
 $$ select assembly_id from profiles where id = auth.uid() $$;
 
+create function app_is_superadmin() returns boolean
+language sql stable security definer set search_path = public as
+$$ select app_role() = 'superadmin' and app_is_approved() $$;
+
 create function app_is_admin() returns boolean
 language sql stable security definer set search_path = public as
-$$ select app_role() = 'admin' and app_is_approved() $$;
+$$ select app_role() in ('admin', 'superadmin') and app_is_approved() $$;
 
 create function can_access_assembly(aid uuid) returns boolean
 language sql stable security definer set search_path = public as
@@ -89,19 +96,19 @@ language sql stable security definer set search_path = public as
 $$ select exists (select 1 from booths b where b.id = bid and can_access_assembly(b.assembly_id)) $$;
 
 grant execute on function app_role(), app_is_approved(), app_assembly(),
-  app_is_admin(), can_access_assembly(uuid), can_access_booth(uuid) to authenticated;
+  app_is_admin(), app_is_superadmin(), can_access_assembly(uuid), can_access_booth(uuid) to authenticated;
 
 -- ---- replace the blanket authenticated policies with scoped ones ----
 
 drop policy assemblies_authenticated_all on assemblies;
 create policy assemblies_select on assemblies
   for select to authenticated using (can_access_assembly(id));
-create policy assemblies_admin_insert on assemblies
-  for insert to authenticated with check (app_is_admin());
-create policy assemblies_admin_update on assemblies
-  for update to authenticated using (app_is_admin()) with check (app_is_admin());
-create policy assemblies_admin_delete on assemblies
-  for delete to authenticated using (app_is_admin());
+create policy assemblies_superadmin_insert on assemblies
+  for insert to authenticated with check (app_is_superadmin());
+create policy assemblies_superadmin_update on assemblies
+  for update to authenticated using (app_is_superadmin()) with check (app_is_superadmin());
+create policy assemblies_superadmin_delete on assemblies
+  for delete to authenticated using (app_is_superadmin());
 
 drop policy booths_authenticated_all on booths;
 create policy booths_scoped_all on booths
@@ -170,16 +177,26 @@ end $$;
 
 create function set_user_role(target uuid, new_role user_role) returns void
 language plpgsql security definer set search_path = public as $$
+declare
+  current_role user_role;
 begin
-  if not app_is_admin() then
+  select role into current_role from profiles where id = target;
+
+  if current_role in ('admin', 'superadmin') or new_role in ('admin', 'superadmin') then
+    if not app_is_superadmin() then
+      raise exception 'not allowed';
+    end if;
+  elsif not app_is_admin() then
     raise exception 'not allowed';
   end if;
-  if new_role <> 'admin'
-     and (select role from profiles where id = target) = 'admin'
+
+  if new_role <> current_role
+     and current_role in ('admin', 'superadmin')
      and (select count(*) from profiles
-          where role = 'admin' and status = 'approved' and id <> target) = 0 then
-    raise exception 'cannot demote the last admin';
+          where role = current_role and status = 'approved' and id <> target) = 0 then
+    raise exception 'cannot demote the last %', current_role;
   end if;
+
   update profiles set role = new_role where id = target;
 end $$;
 
