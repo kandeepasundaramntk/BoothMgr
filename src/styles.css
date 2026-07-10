@@ -94,6 +94,25 @@ textarea {
   padding: 4px 8px;
 }
 
+.view-as-banner {
+  background: #e0e7ff;
+  border-bottom: 1px solid #a5b4fc;
+  color: #3730a3;
+  text-align: center;
+  font-size: 12px;
+  padding: 4px 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+/* fieldset carries default browser chrome we don't want here */
+.view-as-lock {
+  all: unset;
+  display: contents;
+}
+
 .container {
   max-width: 1080px;
   margin: 16px auto;
@@ -529,6 +548,7 @@ table.data tr.clickable:hover {
 @media print {
   .app-header,
   .demo-banner,
+  .view-as-banner,
   .no-print {
     display: none !important;
   }

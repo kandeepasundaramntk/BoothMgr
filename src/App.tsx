@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Link, Navigate, Outlet, Route, Routes } from 'react-router-dom'
-import { AuthProvider, useAuth } from './auth/AuthContext'
+import { AuthProvider, useAuth, useEffectiveProfile, useViewAs } from './auth/AuthContext'
 import { isDemoMode } from './data/api'
 import { ROLE_LABEL } from './data/roles'
 import { LangProvider, useLang, useT } from './i18n'
@@ -23,18 +23,34 @@ const queryClient = new QueryClient({
 
 function Shell() {
   const { loading, signedIn, email, profile, profileLoading, signOut } = useAuth()
+  const effectiveProfile = useEffectiveProfile()
+  const { isViewingAs, viewAsProfile, stopViewAs } = useViewAs()
   const { lang, setLang } = useLang()
   const t = useT()
   if (loading || (signedIn && profileLoading)) return <div className="container">Loading…</div>
   if (!signedIn) return <Navigate to="/login" replace />
+  // Account approval status is real, not simulated by view-as.
   const approved = profile?.status === 'approved'
   const canApprove =
-    approved && (profile.role === 'admin' || profile.role === 'superadmin' || profile.role === 'assembly_poc')
+    approved &&
+    (effectiveProfile?.role === 'admin' || effectiveProfile?.role === 'superadmin' || effectiveProfile?.role === 'assembly_poc')
+  const isSuperadmin = effectiveProfile?.role === 'superadmin'
   return (
     <>
       {isDemoMode && (
         <div className="demo-banner">
           DEMO MODE — மாதிரித் தரவு மட்டும் (fictional data only, stored in this browser)
+        </div>
+      )}
+      {isViewingAs && viewAsProfile && (
+        <div className="view-as-banner">
+          {t(
+            `இப்போது பார்வையிடுகிறீர்கள்: ${viewAsProfile.full_name} (${ROLE_LABEL[viewAsProfile.role].ta}) — படிக்க மட்டும்`,
+            `Viewing as: ${viewAsProfile.full_name} (${ROLE_LABEL[viewAsProfile.role].en}) — read-only`,
+          )}
+          <button className="btn small" onClick={() => void stopViewAs()}>
+            {t('வெளியேறு', 'Exit')}
+          </button>
         </div>
       )}
       <header className="app-header">
@@ -46,6 +62,11 @@ function Shell() {
         {canApprove && (
           <Link className="btn small secondary" to="/approvals">
             {t('ஒப்புதல்கள்', 'Approvals')}
+          </Link>
+        )}
+        {isSuperadmin && (
+          <Link className="btn small secondary" to="/admin">
+            {t('மேலாண்மை', 'Admin Tools')}
           </Link>
         )}
         <button
@@ -65,7 +86,19 @@ function Shell() {
           {t('வெளியேறு', 'Sign out')}
         </button>
       </header>
-      <main className="container">{approved ? <Outlet /> : <PendingApprovalPage />}</main>
+      <main className="container">
+        {approved ? (
+          isViewingAs ? (
+            <fieldset className="view-as-lock" disabled>
+              <Outlet />
+            </fieldset>
+          ) : (
+            <Outlet />
+          )
+        ) : (
+          <PendingApprovalPage />
+        )}
+      </main>
     </>
   )
 }
