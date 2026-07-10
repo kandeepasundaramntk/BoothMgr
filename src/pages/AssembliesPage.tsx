@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate } from 'react-router-dom'
-import { useAuth } from '../auth/AuthContext'
+import { useEffectiveProfile } from '../auth/AuthContext'
 import { getApi } from '../data/api'
 import { L, useT } from '../i18n'
 
 export default function AssembliesPage() {
-  const { profile } = useAuth()
+  const profile = useEffectiveProfile()
   const queryClient = useQueryClient()
   const t = useT()
   const [name, setName] = useState('')

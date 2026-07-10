@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { useAuth } from '../auth/AuthContext'
+import { useAuth, useEffectiveProfile } from '../auth/AuthContext'
 import { getApi } from '../data/api'
 import { ROLE_LABEL } from '../data/roles'
 import { L, useT } from '../i18n'
@@ -9,14 +9,18 @@ import type { Profile, UserRole } from '../types'
 
 /** User approval queue for admins and assembly POCs; role management for admins. */
 export default function ApprovalsPage() {
+  // `me` is the real signed-in user (used for identity, e.g. excluding your
+  // own row below) — role-gating uses the effective (possibly view-as) profile.
   const { profile: me } = useAuth()
+  const effectiveProfile = useEffectiveProfile()
   const queryClient = useQueryClient()
   const t = useT()
   const [error, setError] = useState<string | null>(null)
 
-  const canApprove = me?.role === 'admin' || me?.role === 'superadmin' || me?.role === 'assembly_poc'
-  const isAdminLike = me?.role === 'admin' || me?.role === 'superadmin'
-  const isSuperadmin = me?.role === 'superadmin'
+  const canApprove =
+    effectiveProfile?.role === 'admin' || effectiveProfile?.role === 'superadmin' || effectiveProfile?.role === 'assembly_poc'
+  const isAdminLike = effectiveProfile?.role === 'admin' || effectiveProfile?.role === 'superadmin'
+  const isSuperadmin = effectiveProfile?.role === 'superadmin'
 
   const profiles = useQuery({
     queryKey: ['profiles'],
