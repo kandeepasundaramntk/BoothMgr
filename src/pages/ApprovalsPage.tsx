@@ -5,7 +5,7 @@ import { useAuth } from '../auth/AuthContext'
 import { getApi } from '../data/api'
 import { ROLE_LABEL } from '../data/roles'
 import { L, useT } from '../i18n'
-import type { Profile } from '../types'
+import type { Profile, UserRole } from '../types'
 
 /** User approval queue for admins and assembly POCs; role management for admins. */
 export default function ApprovalsPage() {
@@ -14,8 +14,9 @@ export default function ApprovalsPage() {
   const t = useT()
   const [error, setError] = useState<string | null>(null)
 
-  const canApprove = me?.role === 'admin' || me?.role === 'assembly_poc'
-  const isAdmin = me?.role === 'admin'
+  const canApprove = me?.role === 'admin' || me?.role === 'superadmin' || me?.role === 'assembly_poc'
+  const isAdminLike = me?.role === 'admin' || me?.role === 'superadmin'
+  const isSuperadmin = me?.role === 'superadmin'
 
   const profiles = useQuery({
     queryKey: ['profiles'],
@@ -45,8 +46,7 @@ export default function ApprovalsPage() {
     onError,
   })
   const setRole = useMutation({
-    mutationFn: async (args: { id: string; role: 'assembly_poc' | 'member' }) =>
-      (await getApi()).setProfileRole(args.id, args.role),
+    mutationFn: async (args: { id: string; role: UserRole }) => (await getApi()).setProfileRole(args.id, args.role),
     onSuccess: onDone,
     onError,
   })
@@ -127,7 +127,7 @@ export default function ApprovalsPage() {
         </table>
       )}
 
-      {isAdmin && others.length > 0 && (
+      {isAdminLike && others.length > 0 && (
         <>
           <h3 className="section">
             <L ta="உறுப்பினர்கள்" en="Members" />
@@ -163,23 +163,38 @@ export default function ApprovalsPage() {
                     )}
                   </td>
                   <td>
-                    {p.role === 'member' && p.status === 'approved' && (
-                      <button
-                        className="btn small secondary"
+                    {isSuperadmin ? (
+                      <select
+                        value={p.role}
                         disabled={busy}
-                        onClick={() => setRole.mutate({ id: p.id, role: 'assembly_poc' })}
+                        onChange={(e) => setRole.mutate({ id: p.id, role: e.target.value as UserRole })}
                       >
-                        {t('பொறுப்பாளராக்கு', 'Make POC')}
-                      </button>
-                    )}
-                    {p.role === 'assembly_poc' && (
-                      <button
-                        className="btn small secondary"
-                        disabled={busy}
-                        onClick={() => setRole.mutate({ id: p.id, role: 'member' })}
-                      >
-                        {t('உறுப்பினராக்கு', 'Make member')}
-                      </button>
+                        <option value="member">{t(ROLE_LABEL.member.ta, ROLE_LABEL.member.en)}</option>
+                        <option value="assembly_poc">{t(ROLE_LABEL.assembly_poc.ta, ROLE_LABEL.assembly_poc.en)}</option>
+                        <option value="admin">{t(ROLE_LABEL.admin.ta, ROLE_LABEL.admin.en)}</option>
+                        <option value="superadmin">{t(ROLE_LABEL.superadmin.ta, ROLE_LABEL.superadmin.en)}</option>
+                      </select>
+                    ) : (
+                      <>
+                        {p.role === 'member' && p.status === 'approved' && (
+                          <button
+                            className="btn small secondary"
+                            disabled={busy}
+                            onClick={() => setRole.mutate({ id: p.id, role: 'assembly_poc' })}
+                          >
+                            {t('பொறுப்பாளராக்கு', 'Make POC')}
+                          </button>
+                        )}
+                        {p.role === 'assembly_poc' && (
+                          <button
+                            className="btn small secondary"
+                            disabled={busy}
+                            onClick={() => setRole.mutate({ id: p.id, role: 'member' })}
+                          >
+                            {t('உறுப்பினராக்கு', 'Make member')}
+                          </button>
+                        )}
+                      </>
                     )}
                     {p.status === 'rejected' && (
                       <button className="btn small" disabled={busy} onClick={() => approve.mutate(p.id)}>
