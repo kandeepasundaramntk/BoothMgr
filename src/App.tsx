@@ -28,7 +28,8 @@ function Shell() {
   if (loading || (signedIn && profileLoading)) return <div className="container">Loading…</div>
   if (!signedIn) return <Navigate to="/login" replace />
   const approved = profile?.status === 'approved'
-  const canApprove = approved && (profile.role === 'admin' || profile.role === 'assembly_poc')
+  const canApprove =
+    approved && (profile.role === 'admin' || profile.role === 'superadmin' || profile.role === 'assembly_poc')
   return (
     <>
       {isDemoMode && (
