@@ -14,6 +14,16 @@ interface AuthState {
   signUp(input: SignUpInput): Promise<void>
   signOut(): Promise<void>
   refreshProfile(): Promise<void>
+  /**
+   * Superadmin-only, read-only navigation simulation — NOT a real session
+   * swap. The real superadmin's own auth token still runs every query; RLS
+   * always evaluates as them, never as the viewed-as user. This means
+   * view-as cannot verify what the target user's own permissions would
+   * actually allow/reject — it's a support/inspection tool only.
+   */
+  viewAsProfile: Profile | null
+  startViewAs(target: Profile): Promise<void>
+  stopViewAs(): Promise<void>
 }
 
 const AuthContext = createContext<AuthState | null>(null)
@@ -25,6 +35,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [email, setEmail] = useState<string | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [profileLoading, setProfileLoading] = useState(false)
+  // Not persisted to session/local storage — deliberate: a page reload always
+  // exits view-as rather than silently staying "in character".
+  const [viewAsProfile, setViewAsProfile] = useState<Profile | null>(null)
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined
@@ -60,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // (Re)load the profile whenever the signed-in user changes.
   useEffect(() => {
     let cancelled = false
+    setViewAsProfile(null)
     if (email === null) {
       setProfile(null)
       return
@@ -119,6 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut(): Promise<void> {
+    setViewAsProfile(null)
     if (isDemoMode) {
       sessionStorage.removeItem(DEMO_SESSION_KEY)
       setEmail(null)
@@ -126,6 +141,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const { getSupabase } = await import('../data/supabaseClient')
     await getSupabase().auth.signOut()
+  }
+
+  async function startViewAs(target: Profile): Promise<void> {
+    if (profile?.role !== 'superadmin') throw new Error('அனுமதி இல்லை (not allowed)')
+    await (await getApi()).logViewAs('start', target)
+    setViewAsProfile(target)
+  }
+
+  async function stopViewAs(): Promise<void> {
+    if (viewAsProfile) await (await getApi()).logViewAs('end', viewAsProfile)
+    setViewAsProfile(null)
   }
 
   return (
@@ -140,6 +166,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signUp,
         signOut,
         refreshProfile,
+        viewAsProfile,
+        startViewAs,
+        stopViewAs,
       }}
     >
       {children}
@@ -151,4 +180,15 @@ export function useAuth(): AuthState {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth must be used inside AuthProvider')
   return ctx
+}
+
+/** The profile to use for role-gating/navigation decisions — the real profile, unless view-as is active. */
+export function useEffectiveProfile(): Profile | null {
+  const { profile, viewAsProfile } = useAuth()
+  return viewAsProfile ?? profile
+}
+
+export function useViewAs() {
+  const { viewAsProfile, startViewAs, stopViewAs } = useAuth()
+  return { isViewingAs: viewAsProfile !== null, viewAsProfile, startViewAs, stopViewAs }
 }
