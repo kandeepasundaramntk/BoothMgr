@@ -3,6 +3,7 @@ import { ACTIONS } from '../data/actionsCatalog'
 import { getApi } from '../data/api'
 import { TEAM_LABEL } from '../data/teams'
 import type { ActionStatus } from '../types'
+import { downloadBlob, safeFilenamePart } from './download'
 
 const STATUS_LABEL: Record<ActionStatus, string> = {
   not_started: 'Not started',
@@ -65,10 +66,5 @@ export async function exportAssemblyCsv(assemblyId: string, assemblyName: string
   const csv = Papa.unparse(rows)
   // BOM so Excel opens the Tamil text as UTF-8
   const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `boothmgr-${assemblyName.replace(/[^\p{L}\p{M}\p{N}-]+/gu, '_')}-${new Date().toISOString().slice(0, 10)}.csv`
-  a.click()
-  URL.revokeObjectURL(url)
+  downloadBlob(blob, `boothmgr-${safeFilenamePart(assemblyName)}-${new Date().toISOString().slice(0, 10)}.csv`)
 }

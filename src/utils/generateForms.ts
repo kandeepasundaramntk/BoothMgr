@@ -1,4 +1,5 @@
 import type { BoothDetail } from '../types'
+import { downloadBlob, safeFilenamePart } from './download'
 
 /**
  * Generates the per-team paper booth forms (same layout as the hand-made
@@ -279,19 +280,9 @@ function buildBoothSection(
   }
 }
 
-function downloadBlob(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
 export async function generateTeamForms(opts: GenerateFormsOptions): Promise<void> {
   const dx = await import('docx')
-  // \p{M} keeps Tamil combining vowel signs intact in filenames
-  const safeName = opts.assemblyName.replace(/[^\p{L}\p{M}\p{N}-]+/gu, '_')
+  const safeName = safeFilenamePart(opts.assemblyName)
   const date = new Date().toISOString().slice(0, 10)
 
   const files: { name: string; blob: Blob }[] = []
