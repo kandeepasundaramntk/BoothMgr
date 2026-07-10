@@ -34,17 +34,18 @@ before inviting real users.
 
    Do **not** use the `service_role` key anywhere in this app — it bypasses RLS entirely and must
    never reach client code or Vercel's client-side env vars.
-5. **Bootstrap the first admin**: deploy the frontend first (step 2 below), sign up through
+5. **Bootstrap the first superadmin**: deploy the frontend first (step 2 below), sign up through
    `/signup` with your own account, then in the Supabase SQL Editor run:
 
    ```sql
-   update profiles set role = 'admin', status = 'approved', assembly_id = null,
+   update profiles set role = 'superadmin', status = 'approved', assembly_id = null,
      approved_at = now()
    where email = 'you@example.org';
    ```
 
    Every subsequent user is approved through the app's Approvals page — this SQL step is only
-   needed once, to create the first admin.
+   needed once, to create the first superadmin. From there, promote others to admin or
+   superadmin from the Approvals page.
 
 ## 2. Vercel deployment
 

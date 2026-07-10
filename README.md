@@ -20,11 +20,11 @@ booth-level campaign actions per booth, and provides assembly dashboards.
 4. **Configure the app**: `cp .env.example .env.local` and fill in the project
    URL and anon key.
 5. `npm install && npm run dev`
-6. **Bootstrap the first admin**: sign up through the app, then run in the
-   Supabase SQL editor:
+6. **Bootstrap the first superadmin**: sign up through the app, then run in
+   the Supabase SQL editor:
 
    ```sql
-   update profiles set role = 'admin', status = 'approved', assembly_id = null,
+   update profiles set role = 'superadmin', status = 'approved', assembly_id = null,
      approved_at = now()
    where email = 'you@example.org';
    ```
@@ -35,8 +35,12 @@ Anyone can sign up (`/signup`) with name, phone, email, password and their
 assembly. They stay on a "waiting for approval" screen until approved from the
 Approvals page by:
 
+- **superadmin** — everything an admin can do, plus creates/manages the
+  assembly list itself and promotes/demotes admins and other superadmins —
+  never demote the last superadmin;
 - **admin** — sees all assemblies, approves anyone, promotes members to
-  assembly POC (and back) — never demote the last admin;
+  assembly POC (and back) — cannot touch the assembly list or the
+  admin/superadmin roster;
 - **assembly POC** (தொகுதி பொறுப்பாளர்) — scoped to one assembly; approves or
   rejects that assembly's members;
 - **member** — scoped to one assembly; edits its booth forms.
