@@ -33,7 +33,7 @@ export default function AssembliesPage() {
   }
 
   // Field workers belong to one assembly — take them straight there.
-  if (profile && profile.role !== 'admin') {
+  if (profile && profile.role !== 'admin' && profile.role !== 'superadmin') {
     if (profile.assembly_id) return <Navigate to={`/assembly/${profile.assembly_id}`} replace />
     return (
       <div className="card">
@@ -92,17 +92,19 @@ export default function AssembliesPage() {
           </tbody>
         </table>
       )}
-      <form className="toolbar" style={{ marginTop: 14 }} onSubmit={onSubmit}>
-        <input
-          placeholder={t('புதிய தொகுதியின் பெயர்', 'New assembly name')}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          style={{ minWidth: 260 }}
-        />
-        <button className="btn" type="submit" disabled={create.isPending || !name.trim()}>
-          {t('சேர்', 'Add')}
-        </button>
-      </form>
+      {profile?.role === 'superadmin' && (
+        <form className="toolbar" style={{ marginTop: 14 }} onSubmit={onSubmit}>
+          <input
+            placeholder={t('புதிய தொகுதியின் பெயர்', 'New assembly name')}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            style={{ minWidth: 260 }}
+          />
+          <button className="btn" type="submit" disabled={create.isPending || !name.trim()}>
+            {t('சேர்', 'Add')}
+          </button>
+        </form>
+      )}
     </div>
   )
 }
