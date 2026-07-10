@@ -284,6 +284,8 @@ export function createDemoApi(): DataApi {
 
     async createAssembly(name: string): Promise<void> {
       const store = load()
+      const me = currentProfile(store)
+      if (me.role !== 'superadmin') throw new Error('அனுமதி இல்லை (not allowed)')
       if (store.assemblies.some((a) => a.name === name)) {
         throw new Error(`"${name}" ஏற்கனவே உள்ளது (assembly already exists)`)
       }

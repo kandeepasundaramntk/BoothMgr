@@ -178,11 +178,11 @@ end $$;
 create function set_user_role(target uuid, new_role user_role) returns void
 language plpgsql security definer set search_path = public as $$
 declare
-  current_role user_role;
+  existing_role user_role;
 begin
-  select role into current_role from profiles where id = target;
+  select role into existing_role from profiles where id = target;
 
-  if current_role in ('admin', 'superadmin') or new_role in ('admin', 'superadmin') then
+  if existing_role in ('admin', 'superadmin') or new_role in ('admin', 'superadmin') then
     if not app_is_superadmin() then
       raise exception 'not allowed';
     end if;
@@ -190,11 +190,11 @@ begin
     raise exception 'not allowed';
   end if;
 
-  if new_role <> current_role
-     and current_role in ('admin', 'superadmin')
+  if new_role <> existing_role
+     and existing_role in ('admin', 'superadmin')
      and (select count(*) from profiles
-          where role = current_role and status = 'approved' and id <> target) = 0 then
-    raise exception 'cannot demote the last %', current_role;
+          where role = existing_role and status = 'approved' and id <> target) = 0 then
+    raise exception 'cannot demote the last %', existing_role;
   end if;
 
   update profiles set role = new_role where id = target;
