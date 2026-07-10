@@ -1,12 +1,18 @@
 import type {
   ActionProgressRow,
   ActionStatus,
+  ActivityLogFilter,
+  ActivityLogPage,
   Assembly,
+  AssemblyBackup,
   AssemblySummary,
   BoothDetail,
   BoothImportRow,
   BoothListItem,
+  BulkAssemblyUploadResult,
+  BulkAssemblyUploadRow,
   Profile,
+  RestoreResult,
   UserRole,
 } from '../types'
 
@@ -49,6 +55,20 @@ export interface DataApi {
    * mirrored in demoApi.
    */
   setProfileRole(userId: string, role: UserRole): Promise<void>
+
+  // ---- superadmin tools ----
+  /** Superadmin-only; paginated/filterable audit trail of every logged administrative and booth-level write. */
+  getActivityLog(filter: ActivityLogFilter): Promise<ActivityLogPage>
+  /** Superadmin-only; records the start/end of a "view as" session (no data mutation occurs). */
+  logViewAs(action: 'start' | 'end', targetProfile: Profile): Promise<void>
+  /** Superadmin-only; upserts every booth/child row in `backup` into `assemblyId` (merge, not destructive replace). */
+  restoreAssemblyBackup(assemblyId: string, backup: AssemblyBackup): Promise<RestoreResult>
+  /** Superadmin-only; creates assemblies (and optionally their nested booths) from a JSON upload; existing names are skipped, not errored. */
+  bulkCreateAssemblies(rows: BulkAssemblyUploadRow[]): Promise<BulkAssemblyUploadResult>
+  /** Superadmin-only; deletes every booth (and cascaded child rows) in one assembly. Does NOT delete the assembly itself. Returns the number of booths deleted. */
+  clearAssemblyData(assemblyId: string): Promise<number>
+  /** Superadmin-only; deletes every booth (and cascaded child rows) across ALL assemblies. Does NOT delete assemblies or profiles. Returns the number of booths deleted. */
+  clearAllData(): Promise<number>
 }
 
 export function hasSupabaseConfig(): boolean {

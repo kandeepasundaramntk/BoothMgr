@@ -1,13 +1,20 @@
 import type {
   ActionProgressRow,
   ActionStatus,
+  ActivityLogEntry,
+  ActivityLogFilter,
+  ActivityLogPage,
   Assembly,
+  AssemblyBackup,
   AssemblySummary,
   Booth,
   BoothDetail,
   BoothImportRow,
   BoothListItem,
+  BulkAssemblyUploadResult,
+  BulkAssemblyUploadRow,
   Profile,
+  RestoreResult,
   UserRole,
 } from '../types'
 import type { DataApi } from './api'
@@ -277,7 +284,7 @@ export function createSupabaseApi(): DataApi {
       if (!userId) return null
       const { data, error } = await db
         .from('profiles')
-        .select('id, email, full_name, phone, role, status, assembly_id')
+        .select('id, email, full_name, phone, role, status, assembly_id, created_at, approved_at, approved_by')
         .eq('id', userId)
         .maybeSingle()
       if (error) fail(error.message)
@@ -293,7 +300,7 @@ export function createSupabaseApi(): DataApi {
     async listProfiles(): Promise<Profile[]> {
       const { data, error } = await db
         .from('profiles')
-        .select('id, email, full_name, phone, role, status, assembly_id')
+        .select('id, email, full_name, phone, role, status, assembly_id, created_at, approved_at, approved_by')
         .order('created_at')
       if (error) fail(error.message)
       return (data ?? []) as Profile[]
@@ -312,6 +319,47 @@ export function createSupabaseApi(): DataApi {
     async setProfileRole(userId: string, role: UserRole): Promise<void> {
       const { error } = await db.rpc('set_user_role', { target: userId, new_role: role })
       if (error) fail(error.message)
+    },
+
+    async getActivityLog(filter: ActivityLogFilter): Promise<ActivityLogPage> {
+      let q = db.from('activity_log').select('*', { count: 'exact' }).order('created_at', { ascending: false })
+      if (filter.assemblyId) q = q.eq('assembly_id', filter.assemblyId)
+      if (filter.actorId) q = q.eq('actor_id', filter.actorId)
+      if (filter.actionType) q = q.eq('action_type', filter.actionType)
+      if (filter.dateFrom) q = q.gte('created_at', filter.dateFrom)
+      if (filter.dateTo) q = q.lte('created_at', filter.dateTo)
+      const { data, error, count } = await q.range(filter.offset, filter.offset + filter.limit - 1)
+      if (error) fail(error.message)
+      return { rows: (data ?? []) as ActivityLogEntry[], totalCount: count ?? 0 }
+    },
+
+    async logViewAs(action: 'start' | 'end', targetProfile: Profile): Promise<void> {
+      const { error } = await db.rpc('log_view_as', { p_target: targetProfile.id, p_action: action })
+      if (error) fail(error.message)
+    },
+
+    async restoreAssemblyBackup(assemblyId: string, backup: AssemblyBackup): Promise<RestoreResult> {
+      const { data, error } = await db.rpc('restore_assembly_backup', { p_assembly_id: assemblyId, p_payload: backup })
+      if (error) fail(error.message)
+      return data as RestoreResult
+    },
+
+    async bulkCreateAssemblies(rows: BulkAssemblyUploadRow[]): Promise<BulkAssemblyUploadResult> {
+      const { data, error } = await db.rpc('bulk_create_assemblies', { p_payload: rows })
+      if (error) fail(error.message)
+      return data as BulkAssemblyUploadResult
+    },
+
+    async clearAssemblyData(assemblyId: string): Promise<number> {
+      const { data, error } = await db.rpc('clear_assembly_data', { p_assembly_id: assemblyId })
+      if (error) fail(error.message)
+      return Number(data)
+    },
+
+    async clearAllData(): Promise<number> {
+      const { data, error } = await db.rpc('clear_all_data')
+      if (error) fail(error.message)
+      return Number(data)
     },
   }
 }
