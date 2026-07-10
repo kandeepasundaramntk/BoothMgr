@@ -69,8 +69,17 @@ function seedProfiles(assemblyId: string | null): Profile[] {
     {
       id: uuid(),
       email: 'demo@example.com',
-      full_name: 'மாதிரி நிர்வாகி (Demo Admin)',
+      full_name: 'மாதிரி மேல்நிர்வாகி (Demo Super Admin)',
       phone: '00000 00000',
+      role: 'superadmin',
+      status: 'approved',
+      assembly_id: null,
+    },
+    {
+      id: uuid(),
+      email: 'admin@demo.example',
+      full_name: 'மாதிரி நிர்வாகி (Demo Admin)',
+      phone: '00000 00011',
       role: 'admin',
       status: 'approved',
       assembly_id: null,
@@ -231,6 +240,8 @@ function toDetail(store: Store, b: Booth): BoothDetail {
   }
 }
 
+const isAdminLike = (role: UserRole): boolean => role === 'admin' || role === 'superadmin'
+
 /**
  * Who is "signed in" right now — resolved from the fake session email.
  * Unknown emails resolve to the admin profile so the long-standing demo
@@ -239,7 +250,7 @@ function toDetail(store: Store, b: Booth): BoothDetail {
 function currentProfile(store: Store): Profile {
   const email = sessionStorage.getItem(DEMO_SESSION_KEY)
   const match = store.profiles.find((p) => p.email === email)
-  return match ?? store.profiles.find((p) => p.role === 'admin') ?? store.profiles[0]
+  return match ?? store.profiles.find((p) => isAdminLike(p.role)) ?? store.profiles[0]
 }
 
 /** Demo counterpart of supabase auth.signUp — called from AuthContext. */
@@ -267,7 +278,7 @@ export function createDemoApi(): DataApi {
       const me = currentProfile(store)
       // mirrors the scoped RLS: admins see everything, others their assembly
       const visible =
-        me.role === 'admin' ? store.assemblies : store.assemblies.filter((a) => a.id === me.assembly_id)
+        isAdminLike(me.role) ? store.assemblies : store.assemblies.filter((a) => a.id === me.assembly_id)
       return [...visible].sort((a, b) => a.name.localeCompare(b.name))
     },
 
@@ -411,7 +422,7 @@ export function createDemoApi(): DataApi {
       const store = load()
       const me = currentProfile(store)
       const visible =
-        me.role === 'admin'
+        isAdminLike(me.role)
           ? store.profiles
           : me.role === 'assembly_poc'
             ? store.profiles.filter((p) => p.assembly_id === me.assembly_id || p.id === me.id)
@@ -425,7 +436,7 @@ export function createDemoApi(): DataApi {
       const target = store.profiles.find((p) => p.id === userId)
       if (!target) throw new Error('User not found')
       const allowed =
-        me.role === 'admin' || (me.role === 'assembly_poc' && target.assembly_id === me.assembly_id)
+        isAdminLike(me.role) || (me.role === 'assembly_poc' && target.assembly_id === me.assembly_id)
       if (!allowed) throw new Error('அனுமதி இல்லை (not allowed)')
       target.status = 'approved'
       persist(store)
@@ -437,18 +448,35 @@ export function createDemoApi(): DataApi {
       const target = store.profiles.find((p) => p.id === userId)
       if (!target) throw new Error('User not found')
       const allowed =
-        me.role === 'admin' || (me.role === 'assembly_poc' && target.assembly_id === me.assembly_id)
+        isAdminLike(me.role) || (me.role === 'assembly_poc' && target.assembly_id === me.assembly_id)
       if (!allowed) throw new Error('அனுமதி இல்லை (not allowed)')
       target.status = 'rejected'
       persist(store)
     },
 
-    async setProfileRole(userId: string, role: Extract<UserRole, 'assembly_poc' | 'member'>): Promise<void> {
+    async setProfileRole(userId: string, role: UserRole): Promise<void> {
       const store = load()
       const me = currentProfile(store)
-      if (me.role !== 'admin') throw new Error('அனுமதி இல்லை (not allowed)')
       const target = store.profiles.find((p) => p.id === userId)
       if (!target) throw new Error('User not found')
+      const currentRole = target.role
+      const touchesAdminTier =
+        currentRole === 'admin' || currentRole === 'superadmin' || role === 'admin' || role === 'superadmin'
+      if (touchesAdminTier ? me.role !== 'superadmin' : !isAdminLike(me.role)) {
+        throw new Error('அனுமதி இல்லை (not allowed)')
+      }
+      if (
+        role !== currentRole &&
+        (currentRole === 'admin' || currentRole === 'superadmin') &&
+        store.profiles.filter((p) => p.id !== target.id && p.role === currentRole && p.status === 'approved')
+          .length === 0
+      ) {
+        throw new Error(
+          currentRole === 'superadmin'
+            ? 'கடைசி மேல்நிர்வாகியை பதவி நீக்கம் செய்ய முடியாது (cannot demote the last superadmin)'
+            : 'கடைசி நிர்வாகியை பதவி நீக்கம் செய்ய முடியாது (cannot demote the last admin)',
+        )
+      }
       target.role = role
       persist(store)
     },

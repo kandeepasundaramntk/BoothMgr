@@ -21,12 +21,14 @@ has actions 1,2 done / 3 in-progress / 10 done and health 55/25/20; booth 2
 has 1 done / 1 in-progress and 30/40/30; booth 3 is empty. Clear that
 localStorage key to re-seed.
 
-Seed users (fictional): `demo@example.com` = approved admin (also what any
-*unknown* email resolves to, so "any email signs in" still acts as admin);
-`poc@demo.example` = approved assembly POC of the demo assembly;
-`pending1@demo.example` / `pending2@demo.example` = pending members, so the
-Approvals page is testable out of the box. The demo session email lives in
-sessionStorage `boothmgr-demo-session`.
+Seed users (fictional): `demo@example.com` = approved superadmin (also what
+any *unknown* email resolves to, so "any email signs in" still acts as
+superadmin); `admin@demo.example` = approved admin (can approve/reject and
+manage assembly_poc/member roles, but can't add assemblies or touch the
+admin roster); `poc@demo.example` = approved assembly POC of the demo
+assembly; `pending1@demo.example` / `pending2@demo.example` = pending
+members, so the Approvals page is testable out of the box. The demo session
+email lives in sessionStorage `boothmgr-demo-session`.
 
 ## Flows worth driving
 
