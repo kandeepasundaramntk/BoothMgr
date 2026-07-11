@@ -11,6 +11,7 @@ import type {
   BoothListItem,
   BulkAssemblyUploadResult,
   BulkAssemblyUploadRow,
+  Election,
   ParliamentConstituency,
   Profile,
   RestoreResult,
@@ -37,6 +38,15 @@ export interface DataApi {
   ): Promise<void>
   listParliamentConstituencies(): Promise<ParliamentConstituency[]>
   createParliamentConstituency(input: { name: string; pc_code?: string; state_code?: string }): Promise<void>
+
+  // ---- elections ----
+  /** Every role can read the list (header picker); writes are superadmin-only. */
+  listElections(): Promise<Election[]>
+  /** New elections default to status 'upcoming' server-side; not settable here. Superadmin-only. */
+  createElection(input: { name: string; year: number }): Promise<void>
+  /** Superadmin-only. */
+  setElectionStatus(id: string, status: Election['status']): Promise<void>
+
   listBooths(assemblyId: string): Promise<BoothListItem[]>
   /** Adds booths that don't exist yet (matched by booth_number); returns how many were added. */
   importBooths(assemblyId: string, rows: BoothImportRow[]): Promise<number>

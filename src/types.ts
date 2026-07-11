@@ -15,6 +15,14 @@ export interface ParliamentConstituency {
   created_at: string
 }
 
+export interface Election {
+  id: string
+  name: string
+  year: number
+  status: 'upcoming' | 'active' | 'archived'
+  created_at: string
+}
+
 export type UserRole = 'superadmin' | 'admin' | 'assembly_poc' | 'member'
 export type UserStatus = 'pending' | 'approved' | 'rejected'
 
