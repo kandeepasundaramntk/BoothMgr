@@ -83,7 +83,6 @@ export default function ParliamentConstituenciesPage() {
               <th>
                 <L ta="மாநிலக் குறியீடு" en="State Code" />
               </th>
-              <th style={{ width: 140 }}></th>
             </tr>
           </thead>
           <tbody>
@@ -94,11 +93,6 @@ export default function ParliamentConstituenciesPage() {
                 </td>
                 <td>{pc.pc_code}</td>
                 <td>{pc.state_code}</td>
-                <td>
-                  <Link className="btn small secondary" to={`/parliament-constituencies/${pc.id}`}>
-                    {t('டாஷ்போர்டு', 'Dashboard')}
-                  </Link>
-                </td>
               </tr>
             ))}
           </tbody>
