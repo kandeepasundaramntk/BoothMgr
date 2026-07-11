@@ -38,7 +38,7 @@ export default function BackupRestoreTab() {
     setExporting(true)
     setError(null)
     try {
-      await exportAssemblyBackup(selected.id, selected.name)
+      await exportAssemblyBackup(selected)
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {

@@ -1,5 +1,5 @@
 import { getApi } from '../data/api'
-import type { AssemblyBackup } from '../types'
+import type { Assembly, AssemblyBackup } from '../types'
 import { downloadBlob, safeFilenamePart } from './download'
 
 /**
@@ -9,15 +9,15 @@ import { downloadBlob, safeFilenamePart } from './download'
  * influencer contacts, beneficiary text — handle the downloaded file with
  * the same care (never commit, don't leave lying around).
  */
-export async function exportAssemblyBackup(assemblyId: string, assemblyName: string): Promise<void> {
+export async function exportAssemblyBackup(assembly: Assembly): Promise<void> {
   const api = await getApi()
-  const booths = await api.getAssemblyExport(assemblyId)
+  const booths = await api.getAssemblyExport(assembly.id)
   const backup: AssemblyBackup = {
     format_version: 1,
     exported_at: new Date().toISOString(),
-    assembly: { id: assemblyId, name: assemblyName },
+    assembly,
     booths,
   }
   const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' })
-  downloadBlob(blob, `boothmgr-${safeFilenamePart(assemblyName)}-backup-${new Date().toISOString().slice(0, 10)}.json`)
+  downloadBlob(blob, `boothmgr-${safeFilenamePart(assembly.name)}-backup-${new Date().toISOString().slice(0, 10)}.json`)
 }
