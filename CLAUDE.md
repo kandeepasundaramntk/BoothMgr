@@ -32,6 +32,7 @@ There are no unit tests yet; verification is done by driving the app in demo mod
 ## Requirements Documents
 
 - `By election booth level detailed requirement.xlsx` — original requirements: "Booth level details" sheet (the data schema) and "Booth level actions" sheet (the 21 actions, in Tamil). When reading it with Python, write extracted Tamil text to a UTF-8 file rather than printing to console (console codepages may not handle Tamil).
+- `Ambai Task Categorization V1.xlsx` — maps booth-form fields/actions to owning team (IT Wing Task vs Assembly POC Task); the source for `src/data/teams.ts`'s categorization.
 - `booth-form.html` — the printable paper form v1 was built from; `BoothPrintPage` reuses its layout.
 
 ## Data Sensitivity
