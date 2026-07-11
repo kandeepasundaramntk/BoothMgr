@@ -16,6 +16,8 @@ const BoothListPage = lazy(() => import('./pages/BoothListPage'))
 const BoothPage = lazy(() => import('./pages/BoothPage'))
 const BoothPrintPage = lazy(() => import('./pages/BoothPrintPage'))
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const ParliamentConstituenciesPage = lazy(() => import('./pages/ParliamentConstituenciesPage'))
+const ParliamentConstituencyDashboardPage = lazy(() => import('./pages/ParliamentConstituencyDashboardPage'))
 const SuperadminToolsPage = lazy(() => import('./pages/SuperadminToolsPage'))
 
 const queryClient = new QueryClient({
@@ -63,6 +65,11 @@ function Shell() {
         {canApprove && (
           <Link className="btn small secondary" to="/approvals">
             {t('ஒப்புதல்கள்', 'Approvals')}
+          </Link>
+        )}
+        {isSuperadmin && (
+          <Link className="btn small secondary" to="/parliament-constituencies">
+            {t('நாடாளுமன்றத் தொகுதிகள்', 'Parliament Constituencies')}
           </Link>
         )}
         {isSuperadmin && (
@@ -122,6 +129,8 @@ export default function App() {
                   <Route path="/booth/:boothId" element={<BoothPage />} />
                   <Route path="/booth/:boothId/print" element={<BoothPrintPage />} />
                   <Route path="/blank-form" element={<BlankFormPage />} />
+                  <Route path="/parliament-constituencies" element={<ParliamentConstituenciesPage />} />
+                  <Route path="/parliament-constituencies/:pcId" element={<ParliamentConstituencyDashboardPage />} />
                   <Route path="/admin" element={<SuperadminToolsPage />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />
