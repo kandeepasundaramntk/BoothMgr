@@ -16,6 +16,7 @@ const BoothListPage = lazy(() => import('./pages/BoothListPage'))
 const BoothPage = lazy(() => import('./pages/BoothPage'))
 const BoothPrintPage = lazy(() => import('./pages/BoothPrintPage'))
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const SuperadminToolsPage = lazy(() => import('./pages/SuperadminToolsPage'))
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
@@ -121,6 +122,7 @@ export default function App() {
                   <Route path="/booth/:boothId" element={<BoothPage />} />
                   <Route path="/booth/:boothId/print" element={<BoothPrintPage />} />
                   <Route path="/blank-form" element={<BlankFormPage />} />
+                  <Route path="/admin" element={<SuperadminToolsPage />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
