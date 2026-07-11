@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useAuth, useEffectiveProfile } from '../auth/AuthContext'
 import { getApi } from '../data/api'
 import { ROLE_LABEL } from '../data/roles'
@@ -68,6 +68,9 @@ export default function ApprovalsPage() {
 
   return (
     <div className="card">
+      <div className="toolbar">
+        <Link to="/">← {t('தொகுதிகள்', 'Assemblies')}</Link>
+      </div>
       <h2 className="page-title">
         <L ta="ஒப்புதல்கள்" en="Approvals" />
       </h2>

@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { Tabs, type TabDef } from '../components/Tabs'
-import { L } from '../i18n'
+import { L, useT } from '../i18n'
 import ActivityLogTab from './superadmin/ActivityLogTab'
 import BackupRestoreTab from './superadmin/BackupRestoreTab'
 import ClearDataTab from './superadmin/ClearDataTab'
@@ -24,12 +24,16 @@ export default function SuperadminToolsPage() {
   // superadmin viewing-as a member must still be able to reach this page
   // to exit view-as or check the activity log.
   const { profile } = useAuth()
+  const t = useT()
   const [tab, setTab] = useState<SuperadminTab>('users')
 
   if (profile?.role !== 'superadmin') return <Navigate to="/" replace />
 
   return (
     <div className="card">
+      <div className="toolbar">
+        <Link to="/">← {t('தொகுதிகள்', 'Assemblies')}</Link>
+      </div>
       <h2 className="page-title">
         <L ta="மேலாண்மைக் கருவிகள்" en="Superadmin Tools" />
       </h2>
