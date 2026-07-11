@@ -127,6 +127,14 @@ export interface AssemblySummary {
   avg_opponent_pct: number | null
 }
 
+export interface PcSummary {
+  assembly_count: number
+  booth_count: number
+  avg_committed_pct: number | null
+  avg_swing_pct: number | null
+  avg_opponent_pct: number | null
+}
+
 export interface BoothImportRow {
   booth_number: string
   village_ward_area: string
@@ -166,14 +174,19 @@ export interface ActivityLogPage {
 
 /** Per-assembly backup file shape — downloaded/uploaded as JSON. */
 export interface AssemblyBackup {
-  format_version: 1
+  format_version: 2
   exported_at: string
+  election: { id: string; name: string; year: number }
   assembly: Assembly
   booths: BoothDetail[]
 }
 
 export interface BulkAssemblyUploadRow {
   name: string
+  parliament_constituency_id?: string
+  constituency_code?: string
+  district?: string
+  state_code?: string
   booths?: BoothImportRow[]
 }
 
