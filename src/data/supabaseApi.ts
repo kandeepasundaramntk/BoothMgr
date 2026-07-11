@@ -13,6 +13,7 @@ import type {
   BoothListItem,
   BulkAssemblyUploadResult,
   BulkAssemblyUploadRow,
+  ParliamentConstituency,
   Profile,
   RestoreResult,
   UserRole,
@@ -88,13 +89,51 @@ export function createSupabaseApi(): DataApi {
 
   return {
     async listAssemblies(): Promise<Assembly[]> {
-      const { data, error } = await db.from('assemblies').select('id, name').order('name')
+      const { data, error } = await db
+        .from('assemblies')
+        .select('id, name, parliament_constituency_id, constituency_code, district, state_code')
+        .order('name')
       if (error) fail(error.message)
       return data as Assembly[]
     },
 
-    async createAssembly(name: string): Promise<void> {
-      const { error } = await db.from('assemblies').insert({ name })
+    async createAssembly(input: {
+      name: string
+      parliament_constituency_id?: string | null
+      constituency_code?: string
+      district?: string
+      state_code?: string
+    }): Promise<void> {
+      const { error } = await db.from('assemblies').insert({
+        name: input.name,
+        parliament_constituency_id: input.parliament_constituency_id ?? null,
+        constituency_code: input.constituency_code ?? '',
+        district: input.district ?? '',
+        state_code: input.state_code ?? 'TN',
+      })
+      if (error) fail(error.message)
+    },
+
+    async updateAssembly(
+      id: string,
+      patch: Partial<Pick<Assembly, 'parliament_constituency_id' | 'constituency_code' | 'district' | 'state_code'>>,
+    ): Promise<void> {
+      const { error } = await db.from('assemblies').update(patch).eq('id', id)
+      if (error) fail(error.message)
+    },
+
+    async listParliamentConstituencies(): Promise<ParliamentConstituency[]> {
+      const { data, error } = await db.from('parliament_constituencies').select('*').order('name')
+      if (error) fail(error.message)
+      return data as ParliamentConstituency[]
+    },
+
+    async createParliamentConstituency(input: { name: string; pc_code?: string; state_code?: string }): Promise<void> {
+      const { error } = await db.from('parliament_constituencies').insert({
+        name: input.name,
+        pc_code: input.pc_code ?? '',
+        state_code: input.state_code ?? 'TN',
+      })
       if (error) fail(error.message)
     },
 

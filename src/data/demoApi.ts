@@ -16,6 +16,7 @@ import type {
   BulkAssemblyUploadRow,
   CastePct,
   Influencer,
+  ParliamentConstituency,
   PartyVote,
   Profile,
   ReligionPct,
@@ -39,6 +40,7 @@ const DEMO_SESSION_KEY = 'boothmgr-demo-session'
 
 interface Store {
   assemblies: Assembly[]
+  parliamentConstituencies: ParliamentConstituency[]
   booths: Booth[]
   partyVotes: Record<string, PartyVote[]>
   castes: Record<string, CastePct[]>
@@ -161,7 +163,17 @@ function seed(): Store {
   const booth3 = emptyBooth(b3, assemblyId, '3', 'மாதிரி நகரம் வார்டு 4 (Demo Town Ward 4)')
 
   return {
-    assemblies: [{ id: assemblyId, name: 'மாதிரி தொகுதி (Demo Assembly)' }],
+    assemblies: [
+      {
+        id: assemblyId,
+        name: 'மாதிரி தொகுதி (Demo Assembly)',
+        parliament_constituency_id: null,
+        constituency_code: '',
+        district: '',
+        state_code: 'TN',
+      },
+    ],
+    parliamentConstituencies: [],
     profiles: seedProfiles(assemblyId),
     activityLog: [],
     booths: [booth1, booth2, booth3],
@@ -215,6 +227,14 @@ function load(): Store {
       }
       // stores written before the activity log existed
       store.activityLog ??= []
+      // stores written before the parliament-constituency / assembly-location fields existed
+      for (const a of store.assemblies) {
+        a.parliament_constituency_id ??= null
+        a.constituency_code ??= ''
+        a.district ??= ''
+        a.state_code ??= 'TN'
+      }
+      store.parliamentConstituencies ??= []
       return store
     } catch {
       // corrupted store — fall through to a fresh seed
@@ -346,16 +366,77 @@ export function createDemoApi(): DataApi {
       return [...visible].sort((a, b) => a.name.localeCompare(b.name))
     },
 
-    async createAssembly(name: string): Promise<void> {
+    async createAssembly(input: {
+      name: string
+      parliament_constituency_id?: string | null
+      constituency_code?: string
+      district?: string
+      state_code?: string
+    }): Promise<void> {
       const store = load()
       const me = currentProfile(store)
       if (me.role !== 'superadmin') throw new Error('அனுமதி இல்லை (not allowed)')
-      if (store.assemblies.some((a) => a.name === name)) {
-        throw new Error(`"${name}" ஏற்கனவே உள்ளது (assembly already exists)`)
+      if (store.assemblies.some((a) => a.name === input.name)) {
+        throw new Error(`"${input.name}" ஏற்கனவே உள்ளது (assembly already exists)`)
       }
-      const assembly: Assembly = { id: uuid(), name }
+      const assembly: Assembly = {
+        id: uuid(),
+        name: input.name,
+        parliament_constituency_id: input.parliament_constituency_id ?? null,
+        constituency_code: input.constituency_code ?? '',
+        district: input.district ?? '',
+        state_code: input.state_code ?? 'TN',
+      }
       store.assemblies.push(assembly)
-      logActivity(store, me, 'assemblies.insert', 'assemblies', assembly.id, assembly.id, { name })
+      logActivity(store, me, 'assemblies.insert', 'assemblies', assembly.id, assembly.id, {
+        name: assembly.name,
+        parliament_constituency_id: assembly.parliament_constituency_id,
+        constituency_code: assembly.constituency_code,
+        district: assembly.district,
+        state_code: assembly.state_code,
+      })
+      persist(store)
+    },
+
+    async updateAssembly(
+      id: string,
+      patch: Partial<Pick<Assembly, 'parliament_constituency_id' | 'constituency_code' | 'district' | 'state_code'>>,
+    ): Promise<void> {
+      const store = load()
+      const me = currentProfile(store)
+      if (me.role !== 'superadmin') throw new Error('அனுமதி இல்லை (not allowed)')
+      const assembly = store.assemblies.find((a) => a.id === id)
+      if (!assembly) throw new Error('Assembly not found')
+      Object.assign(assembly, patch)
+      logActivity(store, me, 'assemblies.update', 'assemblies', assembly.id, assembly.id, patch)
+      persist(store)
+    },
+
+    async listParliamentConstituencies(): Promise<ParliamentConstituency[]> {
+      const store = load()
+      return structuredClone([...store.parliamentConstituencies].sort((a, b) => a.name.localeCompare(b.name)))
+    },
+
+    async createParliamentConstituency(input: { name: string; pc_code?: string; state_code?: string }): Promise<void> {
+      const store = load()
+      const me = currentProfile(store)
+      if (me.role !== 'superadmin') throw new Error('அனுமதி இல்லை (not allowed)')
+      if (store.parliamentConstituencies.some((pc) => pc.name === input.name)) {
+        throw new Error(`"${input.name}" ஏற்கனவே உள்ளது (parliament constituency already exists)`)
+      }
+      const pc: ParliamentConstituency = {
+        id: uuid(),
+        name: input.name,
+        pc_code: input.pc_code ?? '',
+        state_code: input.state_code ?? 'TN',
+        created_at: new Date().toISOString(),
+      }
+      store.parliamentConstituencies.push(pc)
+      logActivity(store, me, 'parliament_constituencies.insert', 'parliament_constituencies', pc.id, null, {
+        name: pc.name,
+        pc_code: pc.pc_code,
+        state_code: pc.state_code,
+      })
       persist(store)
     },
 
@@ -667,7 +748,14 @@ export function createDemoApi(): DataApi {
         if (assembly) {
           result.assemblies_skipped.push(entry.name)
         } else {
-          assembly = { id: uuid(), name: entry.name }
+          assembly = {
+            id: uuid(),
+            name: entry.name,
+            parliament_constituency_id: null,
+            constituency_code: '',
+            district: '',
+            state_code: 'TN',
+          }
           store.assemblies.push(assembly)
           result.assemblies_created++
         }
