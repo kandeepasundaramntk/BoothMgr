@@ -19,11 +19,19 @@ before inviting real users.
    - `supabase/migrations/0002_seed_actions.sql`
    - `supabase/migrations/0003_long_pending_issues.sql`
    - `supabase/migrations/0004_profiles_and_scoped_rls.sql`
+   - `supabase/migrations/0005_activity_log.sql`
+   - `supabase/migrations/0006_superadmin_bulk_ops.sql`
 
    Run them in this exact order — later migrations assume earlier ones already exist. After
    applying, spot-check in **Table Editor** that RLS is **enabled** on every table (`booths`,
-   `booth_actions`, `profiles`, etc.) — it should be, since the migrations turn it on, but verify
-   before going live.
+   `booth_actions`, `profiles`, `activity_log`, etc.) — it should be, since the migrations turn it
+   on, but verify before going live.
+
+   **Before applying `0006` to a database with real data**: it includes a dedup cleanup step
+   (deletes duplicate `booth_party_votes`/`booth_caste_pct`/`booth_religion_pct`/`booth_influencers`
+   rows, keeping the lowest `id`) required to install new unique constraints. Run the `select`
+   count queries at the top of that file against your real data first to see how many rows would
+   be affected — do not apply blind.
 3. **Disable "Confirm email"**: Authentication → Sign In / Providers → Email → turn off "Confirm
    email". Registration is public (`/signup`); the in-app approval workflow (admin/assembly POC
    approves new signups) is the actual access gate, not email confirmation. New signups land in a

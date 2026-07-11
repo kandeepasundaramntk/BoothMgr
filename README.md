@@ -37,7 +37,14 @@ Approvals page by:
 
 - **superadmin** — everything an admin can do, plus creates/manages the
   assembly list itself and promotes/demotes admins and other superadmins —
-  never demote the last superadmin;
+  never demote the last superadmin; also gets an "Admin Tools" page
+  (`/admin`) with per-assembly backup/restore (JSON, merge/upsert), bulk
+  assembly upload from JSON, clear booth data (per-assembly or system-wide —
+  never deletes assemblies or accounts), a full user list, a system-wide
+  activity log (every booth-field edit, superadmin-only, with caste/religion/
+  influencer values redacted to "which columns changed"), and read-only
+  "view as" (browse the app as another user's role/assembly without ever
+  changing whose session is signed in — see `src/auth/AuthContext.tsx`);
 - **admin** — sees all assemblies, approves anyone, promotes members to
   assembly POC (and back) — cannot touch the assembly list or the
   admin/superadmin roster;
@@ -78,4 +85,9 @@ beneficiary information — sensitive political data.
   (public constituency names) so the signup form can offer the dropdown.
 - Never commit real voter data, CSV exports, or `.env.local` (gitignored).
 - CSV exports land on the coordinator's machine — handle and delete them
-  responsibly.
+  responsibly. The same applies to JSON backups downloaded from Admin
+  Tools — they carry the same sensitive fields.
+- The activity log captures every write, including booth-field edits, for
+  superadmin eyes only; the three most sensitive tables (caste %, religion %,
+  influencer contacts) are logged as "which columns changed," never the
+  actual values.
