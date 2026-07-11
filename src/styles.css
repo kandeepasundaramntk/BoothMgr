@@ -222,6 +222,16 @@ table.data tr.clickable:hover {
   font-size: 12px;
 }
 
+.btn.danger {
+  background: #b71c1c;
+  color: #fff;
+  border: none;
+}
+
+.btn.danger:hover {
+  background: #8f1414;
+}
+
 .btn:disabled {
   opacity: 0.5;
   cursor: default;
