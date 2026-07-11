@@ -150,8 +150,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function stopViewAs(): Promise<void> {
-    if (viewAsProfile) await (await getApi()).logViewAs('end', viewAsProfile)
-    setViewAsProfile(null)
+    try {
+      if (viewAsProfile) await (await getApi()).logViewAs('end', viewAsProfile)
+    } finally {
+      setViewAsProfile(null)
+    }
   }
 
   return (

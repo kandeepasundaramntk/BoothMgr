@@ -15,6 +15,10 @@
 -- breakdowns, contact details) — for those three tables only, `details`
 -- records which columns changed, never the actual values, so this log
 -- never becomes a second, unredacted, ever-growing copy of that data.
+-- booths.beneficiary_mapping (free-text "beneficiary information", the
+-- other sensitive category CLAUDE.md names) gets the same value-redaction
+-- treatment, while the rest of that table's columns are still fully
+-- diffable — see the TG_TABLE_NAME = 'booths' branch below.
 
 create table activity_log (
   id uuid primary key default gen_random_uuid(),
@@ -100,6 +104,18 @@ begin
       select array_agg(key) into v_changed_cols from jsonb_object_keys(v_row) as key;
       v_details := jsonb_build_object('op', TG_OP, 'columns', to_jsonb(coalesce(v_changed_cols, array[]::text[])));
     end if;
+  elsif TG_TABLE_NAME = 'booths' then
+    -- beneficiary_mapping is free-text "beneficiary information" — the
+    -- other category CLAUDE.md's Data Sensitivity section calls out
+    -- alongside caste/religion/influencer-contact data. Strip its value
+    -- from both sides (like the three tables above) but keep the rest of
+    -- the booth row fully diffable, and still record whether it changed.
+    v_details := jsonb_build_object(
+      'op', TG_OP,
+      'old', v_old - 'beneficiary_mapping',
+      'new', v_new - 'beneficiary_mapping',
+      'beneficiary_mapping_changed', (v_old->>'beneficiary_mapping') is distinct from (v_new->>'beneficiary_mapping')
+    );
   else
     v_details := jsonb_build_object('op', TG_OP, 'old', v_old, 'new', v_new);
   end if;
