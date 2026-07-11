@@ -4,6 +4,7 @@ import { BrowserRouter, Link, Navigate, Outlet, Route, Routes } from 'react-rout
 import { AuthProvider, useAuth, useEffectiveProfile, useViewAs } from './auth/AuthContext'
 import { isDemoMode } from './data/api'
 import { ROLE_LABEL } from './data/roles'
+import { ElectionProvider, useActiveElection } from './election/ElectionContext'
 import { LangProvider, useLang, useT } from './i18n'
 import PendingApprovalPage from './pages/PendingApprovalPage'
 
@@ -28,6 +29,7 @@ function Shell() {
   const { loading, signedIn, email, profile, profileLoading, signOut } = useAuth()
   const effectiveProfile = useEffectiveProfile()
   const { isViewingAs, viewAsProfile, stopViewAs } = useViewAs()
+  const { activeElection, elections, setActiveElectionId } = useActiveElection()
   const { lang, setLang } = useLang()
   const t = useT()
   if (loading || (signedIn && profileLoading)) return <div className="container">Loading…</div>
@@ -60,8 +62,29 @@ function Shell() {
         <h1>
           <Link to="/">BoothMgr — பூத் மேலாண்மை</Link>
         </h1>
-        <span className="sub">{t('2026 இடைத்தேர்தல்', '2026 By-Election', ' — ')}</span>
+        <span className="sub">
+          {activeElection ? `${activeElection.name} (${activeElection.year})` : t('தேர்தல் தேர்ந்தெடுக்கப்படவில்லை', 'No election selected')}
+        </span>
         <span className="spacer" />
+        {elections.length > 0 && (
+          <select
+            className="election-select"
+            value={activeElection?.id ?? ''}
+            onChange={(e) => setActiveElectionId(e.target.value)}
+            title={t('தேர்தலைத் தேர்ந்தெடுக்கவும்', 'Select election')}
+          >
+            {!activeElection && (
+              <option value="" disabled>
+                {t('தேர்தலைத் தேர்ந்தெடுக்கவும்', 'Select election')}
+              </option>
+            )}
+            {elections.map((election) => (
+              <option key={election.id} value={election.id}>
+                {`${election.name} (${election.year})`}
+              </option>
+            ))}
+          </select>
+        )}
         {canApprove && (
           <Link className="btn small secondary" to="/approvals">
             {t('ஒப்புதல்கள்', 'Approvals')}
@@ -115,29 +138,31 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <LangProvider>
-          <BrowserRouter>
-            <Suspense fallback={<div className="container">Loading…</div>}>
-              <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/signup" element={<SignupPage />} />
-                <Route element={<Shell />}>
-                  <Route path="/" element={<AssembliesPage />} />
-                  <Route path="/approvals" element={<ApprovalsPage />} />
-                  <Route path="/assembly/:assemblyId" element={<BoothListPage />} />
-                  <Route path="/assembly/:assemblyId/dashboard" element={<DashboardPage />} />
-                  <Route path="/booth/:boothId" element={<BoothPage />} />
-                  <Route path="/booth/:boothId/print" element={<BoothPrintPage />} />
-                  <Route path="/blank-form" element={<BlankFormPage />} />
-                  <Route path="/parliament-constituencies" element={<ParliamentConstituenciesPage />} />
-                  <Route path="/parliament-constituencies/:pcId" element={<ParliamentConstituencyDashboardPage />} />
-                  <Route path="/admin" element={<SuperadminToolsPage />} />
-                </Route>
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
-        </LangProvider>
+        <ElectionProvider>
+          <LangProvider>
+            <BrowserRouter>
+              <Suspense fallback={<div className="container">Loading…</div>}>
+                <Routes>
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/signup" element={<SignupPage />} />
+                  <Route element={<Shell />}>
+                    <Route path="/" element={<AssembliesPage />} />
+                    <Route path="/approvals" element={<ApprovalsPage />} />
+                    <Route path="/assembly/:assemblyId" element={<BoothListPage />} />
+                    <Route path="/assembly/:assemblyId/dashboard" element={<DashboardPage />} />
+                    <Route path="/booth/:boothId" element={<BoothPage />} />
+                    <Route path="/booth/:boothId/print" element={<BoothPrintPage />} />
+                    <Route path="/blank-form" element={<BlankFormPage />} />
+                    <Route path="/parliament-constituencies" element={<ParliamentConstituenciesPage />} />
+                    <Route path="/parliament-constituencies/:pcId" element={<ParliamentConstituencyDashboardPage />} />
+                    <Route path="/admin" element={<SuperadminToolsPage />} />
+                  </Route>
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </LangProvider>
+        </ElectionProvider>
       </AuthProvider>
     </QueryClientProvider>
   )
