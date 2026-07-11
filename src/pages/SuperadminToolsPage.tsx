@@ -6,10 +6,11 @@ import { L, useT } from '../i18n'
 import ActivityLogTab from './superadmin/ActivityLogTab'
 import BackupRestoreTab from './superadmin/BackupRestoreTab'
 import ClearDataTab from './superadmin/ClearDataTab'
+import ElectionsTab from './superadmin/ElectionsTab'
 import UploadAssembliesTab from './superadmin/UploadAssembliesTab'
 import UsersTab from './superadmin/UsersTab'
 
-type SuperadminTab = 'users' | 'activity' | 'backup' | 'upload' | 'clear'
+type SuperadminTab = 'users' | 'activity' | 'backup' | 'upload' | 'clear' | 'elections'
 
 const TABS: TabDef<SuperadminTab>[] = [
   { key: 'users', ta: 'பயனர்கள்', en: 'Users' },
@@ -17,6 +18,7 @@ const TABS: TabDef<SuperadminTab>[] = [
   { key: 'backup', ta: 'காப்பு / மீட்பு', en: 'Backup / Restore' },
   { key: 'upload', ta: 'தொகுதிகளை பதிவேற்று', en: 'Upload Assemblies' },
   { key: 'clear', ta: 'தரவை அழி', en: 'Clear Data' },
+  { key: 'elections', ta: 'தேர்தல்கள்', en: 'Elections' },
 ]
 
 export default function SuperadminToolsPage() {
@@ -43,6 +45,7 @@ export default function SuperadminToolsPage() {
       {tab === 'backup' && <BackupRestoreTab />}
       {tab === 'upload' && <UploadAssembliesTab />}
       {tab === 'clear' && <ClearDataTab />}
+      {tab === 'elections' && <ElectionsTab />}
     </div>
   )
 }
