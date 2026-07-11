@@ -15,6 +15,7 @@ import type {
   BulkAssemblyUploadResult,
   BulkAssemblyUploadRow,
   CastePct,
+  Election,
   Influencer,
   ParliamentConstituency,
   PartyVote,
@@ -41,6 +42,7 @@ const DEMO_SESSION_KEY = 'boothmgr-demo-session'
 interface Store {
   assemblies: Assembly[]
   parliamentConstituencies: ParliamentConstituency[]
+  elections: Election[]
   booths: Booth[]
   partyVotes: Record<string, PartyVote[]>
   castes: Record<string, CastePct[]>
@@ -174,6 +176,7 @@ function seed(): Store {
       },
     ],
     parliamentConstituencies: [],
+    elections: [],
     profiles: seedProfiles(assemblyId),
     activityLog: [],
     booths: [booth1, booth2, booth3],
@@ -235,6 +238,8 @@ function load(): Store {
         a.state_code ??= 'TN'
       }
       store.parliamentConstituencies ??= []
+      // stores written before elections existed
+      store.elections ??= []
       return store
     } catch {
       // corrupted store — fall through to a fresh seed
@@ -437,6 +442,42 @@ export function createDemoApi(): DataApi {
         pc_code: pc.pc_code,
         state_code: pc.state_code,
       })
+      persist(store)
+    },
+
+    async listElections(): Promise<Election[]> {
+      const store = load()
+      return structuredClone([...store.elections].sort((a, b) => b.year - a.year))
+    },
+
+    async createElection(input: { name: string; year: number }): Promise<void> {
+      const store = load()
+      const me = currentProfile(store)
+      if (me.role !== 'superadmin') throw new Error('அனுமதி இல்லை (not allowed)')
+      const election: Election = {
+        id: uuid(),
+        name: input.name,
+        year: input.year,
+        status: 'upcoming',
+        created_at: new Date().toISOString(),
+      }
+      store.elections.push(election)
+      logActivity(store, me, 'elections.insert', 'elections', election.id, null, {
+        name: election.name,
+        year: election.year,
+        status: election.status,
+      })
+      persist(store)
+    },
+
+    async setElectionStatus(id: string, status: Election['status']): Promise<void> {
+      const store = load()
+      const me = currentProfile(store)
+      if (me.role !== 'superadmin') throw new Error('அனுமதி இல்லை (not allowed)')
+      const election = store.elections.find((e) => e.id === id)
+      if (!election) throw new Error('Election not found')
+      election.status = status
+      logActivity(store, me, 'elections.update', 'elections', election.id, null, { status })
       persist(store)
     },
 

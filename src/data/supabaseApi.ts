@@ -13,6 +13,7 @@ import type {
   BoothListItem,
   BulkAssemblyUploadResult,
   BulkAssemblyUploadRow,
+  Election,
   ParliamentConstituency,
   Profile,
   RestoreResult,
@@ -134,6 +135,22 @@ export function createSupabaseApi(): DataApi {
         pc_code: input.pc_code ?? '',
         state_code: input.state_code ?? 'TN',
       })
+      if (error) fail(error.message)
+    },
+
+    async listElections(): Promise<Election[]> {
+      const { data, error } = await db.from('elections').select('*').order('year', { ascending: false })
+      if (error) fail(error.message)
+      return data as Election[]
+    },
+
+    async createElection(input: { name: string; year: number }): Promise<void> {
+      const { error } = await db.from('elections').insert({ name: input.name, year: input.year })
+      if (error) fail(error.message)
+    },
+
+    async setElectionStatus(id: string, status: Election['status']): Promise<void> {
+      const { error } = await db.from('elections').update({ status }).eq('id', id)
       if (error) fail(error.message)
     },
 
