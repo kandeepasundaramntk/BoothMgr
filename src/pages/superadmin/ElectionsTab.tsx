@@ -112,12 +112,17 @@ export default function ElectionsTab() {
         />
         <input
           type="number"
+          step={1}
           placeholder={t('ஆண்டு', 'Year')}
           value={year}
           onChange={(e) => setYear(e.target.value)}
           style={{ width: 110 }}
         />
-        <button className="btn" type="submit" disabled={create.isPending || !name.trim() || !year.trim()}>
+        <button
+          className="btn"
+          type="submit"
+          disabled={create.isPending || !name.trim() || !year.trim() || !Number.isInteger(Number(year))}
+        >
           {t('சேர்', 'Add')}
         </button>
       </form>
