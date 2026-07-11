@@ -1,4 +1,5 @@
 import type { BoothDetail } from '../types'
+import { downloadBlob, safeFilenamePart } from './download'
 
 /**
  * Generates the per-team paper booth forms (same layout as the hand-made
@@ -85,31 +86,31 @@ const POC_FIELDS: FieldSpec[] = [
   {
     kind: 'lines',
     label: 'முக்கியப் பிரச்சனைகள் (Macro Socioeconomic Trends)',
-    lines: 4,
+    lines: 5,
     text: (d) => d.booth.macro_trends,
   },
   {
     kind: 'lines',
     label: 'நீண்டகாலமாகத் தீர்க்கப்படாத பிரச்சனைகள் (Long Pending Issues)',
-    lines: 4,
+    lines: 5,
     text: (d) => d.booth.long_pending_issues,
   },
   {
     kind: 'lines',
     label: 'வேட்பாளர் தேர்வு (Candidate Selection)',
-    lines: 4,
+    lines: 5,
     text: (d) => d.booth.candidate_selection,
   },
   {
     kind: 'lines',
     label: 'கூட்டணி மற்றும் வாக்குப்பிரிப்பு (Alliance Dynamics & Vote Splitters)',
-    lines: 4,
+    lines: 5,
     text: (d) => d.booth.alliance_dynamics,
   },
   {
     kind: 'lines',
     label: 'அரசு எதிர்ப்பு அலை (Anti-Incumbency)',
-    lines: 4,
+    lines: 5,
     text: (d) => d.booth.anti_incumbency,
   },
 ]
@@ -125,19 +126,19 @@ const ITW_FIELDS: FieldSpec[] = [
   {
     kind: 'lines',
     label: 'ஊடக மேலாண்மை (Media Narrative)',
-    lines: 4,
+    lines: 5,
     text: (d) => d.booth.media_narrative,
   },
   {
     kind: 'lines',
     label: 'கூட்டணி மற்றும் வாக்குப்பிரிப்பு (Alliance Dynamics & Vote Splitters)',
-    lines: 4,
+    lines: 5,
     text: (d) => d.booth.alliance_dynamics,
   },
   {
     kind: 'lines',
     label: 'அரசு எதிர்ப்பு அலை (Anti-Incumbency)',
-    lines: 4,
+    lines: 5,
     text: (d) => d.booth.anti_incumbency,
   },
 ]
@@ -279,19 +280,9 @@ function buildBoothSection(
   }
 }
 
-function downloadBlob(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
 export async function generateTeamForms(opts: GenerateFormsOptions): Promise<void> {
   const dx = await import('docx')
-  // \p{M} keeps Tamil combining vowel signs intact in filenames
-  const safeName = opts.assemblyName.replace(/[^\p{L}\p{M}\p{N}-]+/gu, '_')
+  const safeName = safeFilenamePart(opts.assemblyName)
   const date = new Date().toISOString().slice(0, 10)
 
   const files: { name: string; blob: Blob }[] = []

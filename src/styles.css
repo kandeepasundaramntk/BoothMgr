@@ -49,7 +49,7 @@ textarea {
 
 textarea {
   width: 100%;
-  min-height: 64px;
+  min-height: 120px;
   resize: vertical;
 }
 
@@ -92,6 +92,25 @@ textarea {
   text-align: center;
   font-size: 12px;
   padding: 4px 8px;
+}
+
+.view-as-banner {
+  background: #e0e7ff;
+  border-bottom: 1px solid #a5b4fc;
+  color: #3730a3;
+  text-align: center;
+  font-size: 12px;
+  padding: 4px 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+/* fieldset carries default browser chrome we don't want here */
+.view-as-lock {
+  all: unset;
+  display: contents;
 }
 
 .container {
@@ -203,6 +222,16 @@ table.data tr.clickable:hover {
   font-size: 12px;
 }
 
+.btn.danger {
+  background: #b71c1c;
+  color: #fff;
+  border: none;
+}
+
+.btn.danger:hover {
+  background: #8f1414;
+}
+
 .btn:disabled {
   opacity: 0.5;
   cursor: default;
@@ -218,6 +247,30 @@ table.data tr.clickable:hover {
 
 .toolbar .grow {
   flex: 1;
+}
+
+.print-customize {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 14px;
+  background: #fafafa;
+}
+
+.print-customize-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 4px 0;
+}
+
+.checkbox-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  cursor: pointer;
 }
 
 .error {
@@ -299,6 +352,58 @@ table.data tr.clickable:hover {
   font-size: 13px;
 }
 
+.role-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 10px;
+  padding: 1px 8px;
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+/* booth page tabs */
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin: 14px 0;
+}
+
+.tabs .tab-btn {
+  min-height: 48px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 6px 4px;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.tabs .tab-btn .sub {
+  display: block;
+  font-size: 11px;
+  font-weight: normal;
+  color: var(--muted);
+}
+
+.tabs .tab-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.tabs .tab-btn.active .sub {
+  color: #f3d2d2;
+}
+
+@media (max-width: 700px) {
+  .tabs {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 .team-chips {
   display: flex;
   gap: 6px;
@@ -329,6 +434,21 @@ table.data tr.clickable:hover {
   margin-bottom: 10px;
   background: var(--surface);
   border-radius: 2px;
+  page-break-inside: avoid;
+}
+
+.cb {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 1.5px solid #333;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+
+.cb.checked {
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 .action-item .title-row {
@@ -361,10 +481,14 @@ table.data tr.clickable:hover {
   margin-bottom: 6px;
 }
 
-.status-row label {
+.status-row label,
+.status-row span {
   display: flex;
   align-items: center;
   gap: 5px;
+}
+
+.status-row label {
   cursor: pointer;
 }
 
@@ -434,6 +558,7 @@ table.data tr.clickable:hover {
 @media print {
   .app-header,
   .demo-banner,
+  .view-as-banner,
   .no-print {
     display: none !important;
   }

@@ -1,11 +1,19 @@
 import type {
   ActionProgressRow,
   ActionStatus,
+  ActivityLogFilter,
+  ActivityLogPage,
   Assembly,
+  AssemblyBackup,
   AssemblySummary,
   BoothDetail,
   BoothImportRow,
   BoothListItem,
+  BulkAssemblyUploadResult,
+  BulkAssemblyUploadRow,
+  Profile,
+  RestoreResult,
+  UserRole,
 } from '../types'
 
 /**
@@ -30,6 +38,37 @@ export interface DataApi {
   getWeakestBooths(assemblyId: string, limit: number): Promise<BoothListItem[]>
   getActionProgress(assemblyId: string): Promise<ActionProgressRow[]>
   getAssemblyExport(assemblyId: string): Promise<BoothDetail[]>
+
+  // ---- users & approval ----
+  /** The signed-in user's own profile; null when no profile row exists yet. */
+  getMyProfile(): Promise<Profile | null>
+  /** Assembly names for the signup dropdown — works before authentication. */
+  listSignupAssemblies(): Promise<Assembly[]>
+  /** Profiles the current user may see (RLS-scoped: admin all, POC own assembly). */
+  listProfiles(): Promise<Profile[]>
+  approveProfile(userId: string): Promise<void>
+  rejectProfile(userId: string): Promise<void>
+  /**
+   * Change a user's role. Promoting/demoting between assembly_poc and
+   * member requires admin or superadmin; any change touching admin or
+   * superadmin requires superadmin. Enforced server-side (RLS/RPC) and
+   * mirrored in demoApi.
+   */
+  setProfileRole(userId: string, role: UserRole): Promise<void>
+
+  // ---- superadmin tools ----
+  /** Superadmin-only; paginated/filterable audit trail of every logged administrative and booth-level write. */
+  getActivityLog(filter: ActivityLogFilter): Promise<ActivityLogPage>
+  /** Superadmin-only; records the start/end of a "view as" session (no data mutation occurs). */
+  logViewAs(action: 'start' | 'end', targetProfile: Profile): Promise<void>
+  /** Superadmin-only; upserts every booth/child row in `backup` into `assemblyId` (merge, not destructive replace). */
+  restoreAssemblyBackup(assemblyId: string, backup: AssemblyBackup): Promise<RestoreResult>
+  /** Superadmin-only; creates assemblies (and optionally their nested booths) from a JSON upload; existing names are skipped, not errored. */
+  bulkCreateAssemblies(rows: BulkAssemblyUploadRow[]): Promise<BulkAssemblyUploadResult>
+  /** Superadmin-only; deletes every booth (and cascaded child rows) in one assembly. Does NOT delete the assembly itself. Returns the number of booths deleted. */
+  clearAssemblyData(assemblyId: string): Promise<number>
+  /** Superadmin-only; deletes every booth (and cascaded child rows) across ALL assemblies. Does NOT delete assemblies or profiles. Returns the number of booths deleted. */
+  clearAllData(): Promise<number>
 }
 
 export function hasSupabaseConfig(): boolean {

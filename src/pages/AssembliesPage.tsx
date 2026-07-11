@@ -1,10 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
+import { useEffectiveProfile } from '../auth/AuthContext'
 import { getApi } from '../data/api'
 import { L, useT } from '../i18n'
 
 export default function AssembliesPage() {
+  const profile = useEffectiveProfile()
   const queryClient = useQueryClient()
   const t = useT()
   const [name, setName] = useState('')
@@ -28,6 +30,21 @@ export default function AssembliesPage() {
   function onSubmit(e: FormEvent) {
     e.preventDefault()
     if (name.trim()) create.mutate(name.trim())
+  }
+
+  // Field workers belong to one assembly — take them straight there.
+  if (profile && profile.role !== 'admin' && profile.role !== 'superadmin') {
+    if (profile.assembly_id) return <Navigate to={`/assembly/${profile.assembly_id}`} replace />
+    return (
+      <div className="card">
+        <p className="hint">
+          <L
+            ta="உங்கள் கணக்கிற்கு தொகுதி எதுவும் இணைக்கப்படவில்லை — நிர்வாகியைத் தொடர்பு கொள்ளவும்."
+            en="No assembly is linked to your account — contact the admin."
+          />
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -75,17 +92,19 @@ export default function AssembliesPage() {
           </tbody>
         </table>
       )}
-      <form className="toolbar" style={{ marginTop: 14 }} onSubmit={onSubmit}>
-        <input
-          placeholder={t('புதிய தொகுதியின் பெயர்', 'New assembly name')}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          style={{ minWidth: 260 }}
-        />
-        <button className="btn" type="submit" disabled={create.isPending || !name.trim()}>
-          {t('சேர்', 'Add')}
-        </button>
-      </form>
+      {profile?.role === 'superadmin' && (
+        <form className="toolbar" style={{ marginTop: 14 }} onSubmit={onSubmit}>
+          <input
+            placeholder={t('புதிய தொகுதியின் பெயர்', 'New assembly name')}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            style={{ minWidth: 260 }}
+          />
+          <button className="btn" type="submit" disabled={create.isPending || !name.trim()}>
+            {t('சேர்', 'Add')}
+          </button>
+        </form>
+      )}
     </div>
   )
 }

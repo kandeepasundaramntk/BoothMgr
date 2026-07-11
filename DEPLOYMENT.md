@@ -19,11 +19,19 @@ before inviting real users.
    - `supabase/migrations/0002_seed_actions.sql`
    - `supabase/migrations/0003_long_pending_issues.sql`
    - `supabase/migrations/0004_profiles_and_scoped_rls.sql`
+   - `supabase/migrations/0005_activity_log.sql`
+   - `supabase/migrations/0006_superadmin_bulk_ops.sql`
 
    Run them in this exact order — later migrations assume earlier ones already exist. After
    applying, spot-check in **Table Editor** that RLS is **enabled** on every table (`booths`,
-   `booth_actions`, `profiles`, etc.) — it should be, since the migrations turn it on, but verify
-   before going live.
+   `booth_actions`, `profiles`, `activity_log`, etc.) — it should be, since the migrations turn it
+   on, but verify before going live.
+
+   **Before applying `0006` to a database with real data**: it includes a dedup cleanup step
+   (deletes duplicate `booth_party_votes`/`booth_caste_pct`/`booth_religion_pct`/`booth_influencers`
+   rows, keeping the lowest `id`) required to install new unique constraints. Run the `select`
+   count queries at the top of that file against your real data first to see how many rows would
+   be affected — do not apply blind.
 3. **Disable "Confirm email"**: Authentication → Sign In / Providers → Email → turn off "Confirm
    email". Registration is public (`/signup`); the in-app approval workflow (admin/assembly POC
    approves new signups) is the actual access gate, not email confirmation. New signups land in a
@@ -34,17 +42,18 @@ before inviting real users.
 
    Do **not** use the `service_role` key anywhere in this app — it bypasses RLS entirely and must
    never reach client code or Vercel's client-side env vars.
-5. **Bootstrap the first admin**: deploy the frontend first (step 2 below), sign up through
+5. **Bootstrap the first superadmin**: deploy the frontend first (step 2 below), sign up through
    `/signup` with your own account, then in the Supabase SQL Editor run:
 
    ```sql
-   update profiles set role = 'admin', status = 'approved', assembly_id = null,
+   update profiles set role = 'superadmin', status = 'approved', assembly_id = null,
      approved_at = now()
    where email = 'you@example.org';
    ```
 
    Every subsequent user is approved through the app's Approvals page — this SQL step is only
-   needed once, to create the first admin.
+   needed once, to create the first superadmin. From there, promote others to admin or
+   superadmin from the Approvals page.
 
 ## 2. Vercel deployment
 
