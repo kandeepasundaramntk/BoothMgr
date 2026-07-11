@@ -11,6 +11,7 @@ import type {
   BoothListItem,
   BulkAssemblyUploadResult,
   BulkAssemblyUploadRow,
+  ParliamentConstituency,
   Profile,
   RestoreResult,
   UserRole,
@@ -23,7 +24,19 @@ import type {
  */
 export interface DataApi {
   listAssemblies(): Promise<Assembly[]>
-  createAssembly(name: string): Promise<void>
+  createAssembly(input: {
+    name: string
+    parliament_constituency_id?: string | null
+    constituency_code?: string
+    district?: string
+    state_code?: string
+  }): Promise<void>
+  updateAssembly(
+    id: string,
+    patch: Partial<Pick<Assembly, 'parliament_constituency_id' | 'constituency_code' | 'district' | 'state_code'>>,
+  ): Promise<void>
+  listParliamentConstituencies(): Promise<ParliamentConstituency[]>
+  createParliamentConstituency(input: { name: string; pc_code?: string; state_code?: string }): Promise<void>
   listBooths(assemblyId: string): Promise<BoothListItem[]>
   /** Adds booths that don't exist yet (matched by booth_number); returns how many were added. */
   importBooths(assemblyId: string, rows: BoothImportRow[]): Promise<number>

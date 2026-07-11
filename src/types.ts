@@ -1,6 +1,18 @@
 export interface Assembly {
   id: string
   name: string
+  parliament_constituency_id: string | null
+  constituency_code: string
+  district: string
+  state_code: string
+}
+
+export interface ParliamentConstituency {
+  id: string
+  name: string
+  pc_code: string
+  state_code: string
+  created_at: string
 }
 
 export type UserRole = 'superadmin' | 'admin' | 'assembly_poc' | 'member'
