@@ -39,6 +39,8 @@ export default function AssembliesPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editFields, setEditFields] = useState<AssemblyEditFields | null>(null)
   const [editError, setEditError] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
+  const [codeSortAsc, setCodeSortAsc] = useState(true)
 
   const assemblies = useQuery({
     queryKey: ['assemblies'],
@@ -51,6 +53,24 @@ export default function AssembliesPage() {
   })
 
   const pcById = new Map((parliamentConstituencies.data ?? []).map((pc) => [pc.id, pc]))
+
+  const q = search.trim().toLowerCase()
+  const visibleAssemblies = (assemblies.data ?? [])
+    .filter((a) => {
+      if (!q) return true
+      const pcName = pcById.get(a.parliament_constituency_id ?? '')?.name ?? ''
+      return [a.name, a.constituency_code, a.district, pcName]
+        .filter(Boolean)
+        .some((field) => field!.toLowerCase().includes(q))
+    })
+    .slice()
+    .sort((a, b) => {
+      const ca = Number(a.constituency_code)
+      const cb = Number(b.constituency_code)
+      const na = a.constituency_code ? (Number.isNaN(ca) ? Infinity : ca) : Infinity
+      const nb = b.constituency_code ? (Number.isNaN(cb) ? Infinity : cb) : Infinity
+      return codeSortAsc ? na - nb : nb - na
+    })
 
   const assemblySummaries = useQuery({
     queryKey: ['assemblySummaries', activeElectionId],
@@ -149,6 +169,12 @@ export default function AssembliesPage() {
         <L ta="சட்டமன்றத் தொகுதிகள்" en="Assemblies" />
       </h2>
       <div className="toolbar no-print">
+        <input
+          placeholder={t('தேடு: தொகுதி / மாவட்டம் / மக்களவை', 'search assembly / district / PC')}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ minWidth: 260 }}
+        />
         <span className="grow" />
         <Link className="btn small secondary" to="/blank-form">
           {t('வெற்றுப் படிவம் அச்சிடு', 'Print blank form')}
@@ -174,8 +200,12 @@ export default function AssembliesPage() {
         <table className="data">
           <thead>
             <tr>
-              <th>
-                <L ta="தொகுதி" en="Assembly" />
+              <th
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+                onClick={() => setCodeSortAsc((prev) => !prev)}
+                title={t('தொகுதி குறியீட்டால் வரிசைப்படுத்து', 'Sort by constituency code')}
+              >
+                <L ta="தொகுதி" en="Assembly" /> {codeSortAsc ? '▲' : '▼'}
               </th>
               <th>
                 <L ta="மக்களவைத் தொகுதி" en="Parliament Constituency" />
@@ -187,7 +217,14 @@ export default function AssembliesPage() {
             </tr>
           </thead>
           <tbody>
-            {assemblies.data.map((a) => {
+            {visibleAssemblies.length === 0 && (
+              <tr>
+                <td colSpan={4} className="hint">
+                  <L ta="பொருந்தும் தொகுதிகள் இல்லை." en="No matching assemblies." />
+                </td>
+              </tr>
+            )}
+            {visibleAssemblies.map((a) => {
               const isEditing = editingId === a.id
               return (
                 <tr key={a.id}>
