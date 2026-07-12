@@ -247,7 +247,7 @@ export default function AssembliesPage() {
                   </td>
                   <td>
                     <div className="toolbar" style={{ flexWrap: 'nowrap', gap: 6 }}>
-                      <Link className="btn small secondary" to={`/assembly/${a.id}/dashboard`}>
+                      <Link className="btn small secondary" to={`/assembly/${a.id}?tab=overview`}>
                         {t('டாஷ்போர்டு', 'Dashboard')}
                       </Link>
                       {profile?.role === 'superadmin' &&

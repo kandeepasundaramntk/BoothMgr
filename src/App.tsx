@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { BrowserRouter, Link, Navigate, Outlet, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Link, Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
 import { AuthProvider, useAuth, useEffectiveProfile, useViewAs } from './auth/AuthContext'
 import { isDemoMode } from './data/api'
 import { ROLE_LABEL } from './data/roles'
@@ -16,7 +16,6 @@ const BlankFormPage = lazy(() => import('./pages/BlankFormPage'))
 const BoothListPage = lazy(() => import('./pages/BoothListPage'))
 const BoothPage = lazy(() => import('./pages/BoothPage'))
 const BoothPrintPage = lazy(() => import('./pages/BoothPrintPage'))
-const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const ParliamentConstituenciesPage = lazy(() => import('./pages/ParliamentConstituenciesPage'))
 const ParliamentConstituencyDashboardPage = lazy(() => import('./pages/ParliamentConstituencyDashboardPage'))
 const SuperadminToolsPage = lazy(() => import('./pages/SuperadminToolsPage'))
@@ -24,6 +23,13 @@ const SuperadminToolsPage = lazy(() => import('./pages/SuperadminToolsPage'))
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
 })
+
+// Redirects the retired /assembly/:id/dashboard path to the Overview tab.
+// Absolute target so resolution is unaffected by route nesting.
+function DashboardRedirect() {
+  const { assemblyId } = useParams<{ assemblyId: string }>()
+  return <Navigate to={`/assembly/${assemblyId}?tab=overview`} replace />
+}
 
 function Shell() {
   const { loading, signedIn, email, profile, profileLoading, signOut } = useAuth()
@@ -149,7 +155,8 @@ export default function App() {
                     <Route path="/" element={<AssembliesPage />} />
                     <Route path="/approvals" element={<ApprovalsPage />} />
                     <Route path="/assembly/:assemblyId" element={<BoothListPage />} />
-                    <Route path="/assembly/:assemblyId/dashboard" element={<DashboardPage />} />
+                    {/* Temporary redirect: the dashboard is now the Overview tab. Kept for one release for bookmarked/external links. */}
+                    <Route path="/assembly/:assemblyId/dashboard" element={<DashboardRedirect />} />
                     <Route path="/booth/:boothId" element={<BoothPage />} />
                     <Route path="/booth/:boothId/print" element={<BoothPrintPage />} />
                     <Route path="/blank-form" element={<BlankFormPage />} />
