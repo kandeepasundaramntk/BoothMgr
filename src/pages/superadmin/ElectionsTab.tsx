@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
 import { getApi } from '../../data/api'
+import { useActiveElection } from '../../election/ElectionContext'
 import { L, useLang, useT } from '../../i18n'
 import type { Election } from '../../types'
 
@@ -14,6 +15,7 @@ export default function ElectionsTab() {
   const { lang } = useLang()
   const t = useT()
   const queryClient = useQueryClient()
+  const { refreshElections } = useActiveElection()
   const [name, setName] = useState('')
   const [year, setYear] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -31,6 +33,7 @@ export default function ElectionsTab() {
       setYear('')
       setError(null)
       void queryClient.invalidateQueries({ queryKey: ['elections'] })
+      void refreshElections()
     },
     onError: (e) => setError(e instanceof Error ? e.message : String(e)),
   })
@@ -41,6 +44,7 @@ export default function ElectionsTab() {
     onSuccess: () => {
       setStatusError(null)
       void queryClient.invalidateQueries({ queryKey: ['elections'] })
+      void refreshElections()
     },
     onError: (e) => setStatusError(e instanceof Error ? e.message : String(e)),
   })

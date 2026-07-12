@@ -10,6 +10,8 @@ interface ElectionState {
   activeElection: Election | null
   elections: Election[]
   setActiveElectionId(id: string): void
+  /** Re-fetches the election list — call after creating/editing an election elsewhere (e.g. ElectionsTab), since this list isn't wired into react-query's cache. */
+  refreshElections(): Promise<void>
 }
 
 const ElectionContext = createContext<ElectionState | null>(null)
@@ -48,6 +50,23 @@ export function ElectionProvider({ children }: { children: ReactNode }) {
     }
   }, [signedIn])
 
+  // Called after a superadmin creates/edits an election elsewhere (e.g.
+  // ElectionsTab) — this list is plain useState, not react-query, so it
+  // isn't picked up by that page's own cache invalidation. Preserves the
+  // current selection if it's still valid, rather than re-seeding from
+  // scratch and yanking the picker out from under the user.
+  async function refreshElections(): Promise<void> {
+    const list = await (await getApi()).listElections()
+    setElections(list)
+    setActiveElectionIdState((current) => {
+      if (current && list.some((election) => election.id === current)) return current
+      const stored = localStorage.getItem(ACTIVE_ELECTION_KEY)
+      if (stored && list.some((election) => election.id === stored)) return stored
+      const active = list.find((election) => election.status === 'active')
+      return active ? active.id : null
+    })
+  }
+
   function setActiveElectionId(id: string): void {
     localStorage.setItem(ACTIVE_ELECTION_KEY, id)
     setActiveElectionIdState(id)
@@ -56,7 +75,9 @@ export function ElectionProvider({ children }: { children: ReactNode }) {
   const activeElection = elections.find((election) => election.id === activeElectionId) ?? null
 
   return (
-    <ElectionContext.Provider value={{ activeElectionId, activeElection, elections, setActiveElectionId }}>
+    <ElectionContext.Provider
+      value={{ activeElectionId, activeElection, elections, setActiveElectionId, refreshElections }}
+    >
       {children}
     </ElectionContext.Provider>
   )
