@@ -62,8 +62,8 @@ export default function UploadAssembliesTab() {
     <div>
       <p className="hint">
         <L
-          ta='JSON வடிவம்: [{ "name": "தொகுதி பெயர்", "booths"?: [{ "booth_number": "...", "village_ward_area": "..." }] }]. ஏற்கனவே உள்ள தொகுதி பெயர்கள் தவிர்க்கப்படும் (skip), ஆனால் அவற்றின் புதிய பூத்கள் சேர்க்கப்படும்.'
-          en='JSON format: [{ "name": "Assembly name", "booths"?: [{ "booth_number": "...", "village_ward_area": "..." }] }]. Existing assembly names are skipped, but their new booths are still added.'
+          ta='JSON வடிவம்: [{ "name": "தொகுதி பெயர்", "parliament_constituency_id"?: "...", "constituency_code"?: "...", "district"?: "...", "state_code"?: "...", "booths"?: [{ "booth_number": "...", "village_ward_area": "..." }] }]. கூடுதல் புலங்கள் அனைத்தும் விருப்பத்திற்குரியவை. ஏற்கனவே உள்ள தொகுதி பெயர்கள் தவிர்க்கப்படும் (skip), ஆனால் அவற்றின் புதிய பூத்கள் சேர்க்கப்படும்.'
+          en='JSON format: [{ "name": "Assembly name", "parliament_constituency_id"?: "...", "constituency_code"?: "...", "district"?: "...", "state_code"?: "...", "booths"?: [{ "booth_number": "...", "village_ward_area": "..." }] }]. The extra fields are all optional. Existing assembly names are skipped, but their new booths are still added.'
         />
       </p>
       <div className="toolbar">

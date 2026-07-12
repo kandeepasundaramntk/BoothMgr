@@ -1,9 +1,10 @@
 import { lazy, Suspense } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { BrowserRouter, Link, Navigate, Outlet, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Link, Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
 import { AuthProvider, useAuth, useEffectiveProfile, useViewAs } from './auth/AuthContext'
 import { isDemoMode } from './data/api'
 import { ROLE_LABEL } from './data/roles'
+import { ElectionProvider, useActiveElection } from './election/ElectionContext'
 import { LangProvider, useLang, useT } from './i18n'
 import PendingApprovalPage from './pages/PendingApprovalPage'
 
@@ -15,17 +16,26 @@ const BlankFormPage = lazy(() => import('./pages/BlankFormPage'))
 const BoothListPage = lazy(() => import('./pages/BoothListPage'))
 const BoothPage = lazy(() => import('./pages/BoothPage'))
 const BoothPrintPage = lazy(() => import('./pages/BoothPrintPage'))
-const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const ParliamentConstituenciesPage = lazy(() => import('./pages/ParliamentConstituenciesPage'))
+const ParliamentConstituencyDashboardPage = lazy(() => import('./pages/ParliamentConstituencyDashboardPage'))
 const SuperadminToolsPage = lazy(() => import('./pages/SuperadminToolsPage'))
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
 })
 
+// Redirects the retired /assembly/:id/dashboard path to the Overview tab.
+// Absolute target so resolution is unaffected by route nesting.
+function DashboardRedirect() {
+  const { assemblyId } = useParams<{ assemblyId: string }>()
+  return <Navigate to={`/assembly/${assemblyId}?tab=overview`} replace />
+}
+
 function Shell() {
   const { loading, signedIn, email, profile, profileLoading, signOut } = useAuth()
   const effectiveProfile = useEffectiveProfile()
   const { isViewingAs, viewAsProfile, stopViewAs } = useViewAs()
+  const { activeElection, elections, setActiveElectionId } = useActiveElection()
   const { lang, setLang } = useLang()
   const t = useT()
   if (loading || (signedIn && profileLoading)) return <div className="container">Loading…</div>
@@ -58,11 +68,37 @@ function Shell() {
         <h1>
           <Link to="/">BoothMgr — பூத் மேலாண்மை</Link>
         </h1>
-        <span className="sub">{t('2026 இடைத்தேர்தல்', '2026 By-Election', ' — ')}</span>
+        <span className="sub">
+          {activeElection ? `${activeElection.name} (${activeElection.year})` : t('தேர்தல் தேர்ந்தெடுக்கப்படவில்லை', 'No election selected')}
+        </span>
         <span className="spacer" />
+        {elections.length > 0 && (
+          <select
+            className="election-select"
+            value={activeElection?.id ?? ''}
+            onChange={(e) => setActiveElectionId(e.target.value)}
+            title={t('தேர்தலைத் தேர்ந்தெடுக்கவும்', 'Select election')}
+          >
+            {!activeElection && (
+              <option value="" disabled>
+                {t('தேர்தலைத் தேர்ந்தெடுக்கவும்', 'Select election')}
+              </option>
+            )}
+            {elections.map((election) => (
+              <option key={election.id} value={election.id}>
+                {`${election.name} (${election.year})`}
+              </option>
+            ))}
+          </select>
+        )}
         {canApprove && (
           <Link className="btn small secondary" to="/approvals">
             {t('ஒப்புதல்கள்', 'Approvals')}
+          </Link>
+        )}
+        {isSuperadmin && (
+          <Link className="btn small secondary" to="/parliament-constituencies">
+            {t('நாடாளுமன்றத் தொகுதிகள்', 'Parliament Constituencies')}
           </Link>
         )}
         {isSuperadmin && (
@@ -108,27 +144,32 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <LangProvider>
-          <BrowserRouter>
-            <Suspense fallback={<div className="container">Loading…</div>}>
-              <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/signup" element={<SignupPage />} />
-                <Route element={<Shell />}>
-                  <Route path="/" element={<AssembliesPage />} />
-                  <Route path="/approvals" element={<ApprovalsPage />} />
-                  <Route path="/assembly/:assemblyId" element={<BoothListPage />} />
-                  <Route path="/assembly/:assemblyId/dashboard" element={<DashboardPage />} />
-                  <Route path="/booth/:boothId" element={<BoothPage />} />
-                  <Route path="/booth/:boothId/print" element={<BoothPrintPage />} />
-                  <Route path="/blank-form" element={<BlankFormPage />} />
-                  <Route path="/admin" element={<SuperadminToolsPage />} />
-                </Route>
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
-        </LangProvider>
+        <ElectionProvider>
+          <LangProvider>
+            <BrowserRouter>
+              <Suspense fallback={<div className="container">Loading…</div>}>
+                <Routes>
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/signup" element={<SignupPage />} />
+                  <Route element={<Shell />}>
+                    <Route path="/" element={<AssembliesPage />} />
+                    <Route path="/approvals" element={<ApprovalsPage />} />
+                    <Route path="/assembly/:assemblyId" element={<BoothListPage />} />
+                    {/* Temporary redirect: the dashboard is now the Overview tab. Kept for one release for bookmarked/external links. */}
+                    <Route path="/assembly/:assemblyId/dashboard" element={<DashboardRedirect />} />
+                    <Route path="/booth/:boothId" element={<BoothPage />} />
+                    <Route path="/booth/:boothId/print" element={<BoothPrintPage />} />
+                    <Route path="/blank-form" element={<BlankFormPage />} />
+                    <Route path="/parliament-constituencies" element={<ParliamentConstituenciesPage />} />
+                    <Route path="/parliament-constituencies/:pcId" element={<ParliamentConstituencyDashboardPage />} />
+                    <Route path="/admin" element={<SuperadminToolsPage />} />
+                  </Route>
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </LangProvider>
+        </ElectionProvider>
       </AuthProvider>
     </QueryClientProvider>
   )

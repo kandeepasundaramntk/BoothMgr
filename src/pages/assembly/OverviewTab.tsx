@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { TeamBadge, TeamChips } from '../components/TeamBadge'
-import { ACTIONS, TOTAL_ACTIONS } from '../data/actionsCatalog'
-import { getApi } from '../data/api'
-import { matchesTeam, type TeamFilter } from '../data/teams'
-import { L, useT } from '../i18n'
-import { healthColor, healthLabel } from '../utils/health'
+import { Link, useNavigate } from 'react-router-dom'
+import { TeamBadge, TeamChips } from '../../components/TeamBadge'
+import { ACTIONS, TOTAL_ACTIONS } from '../../data/actionsCatalog'
+import { getApi } from '../../data/api'
+import { matchesTeam, type TeamFilter } from '../../data/teams'
+import { L } from '../../i18n'
+import { healthColor, healthLabel } from '../../utils/health'
 
 // Status palette (dataviz skill): meaning is never color-alone — every bar row
 // prints its counts as text and the legend carries labels.
@@ -42,10 +42,8 @@ function StackedBar({ done, inProgress, notStarted }: { done: number; inProgress
   )
 }
 
-export default function DashboardPage() {
-  const { assemblyId } = useParams<{ assemblyId: string }>()
+export function OverviewTab({ assemblyId, electionId }: { assemblyId: string; electionId: string }): JSX.Element {
   const navigate = useNavigate()
-  const t = useT()
   const [teamFilter, setTeamFilter] = useState<TeamFilter>('all')
 
   const assemblies = useQuery({
@@ -54,20 +52,28 @@ export default function DashboardPage() {
   })
   const assembly = assemblies.data?.find((a) => a.id === assemblyId)
 
+  const parliamentConstituencies = useQuery({
+    queryKey: ['parliamentConstituencies'],
+    queryFn: async () => (await getApi()).listParliamentConstituencies(),
+  })
+  const pc = assembly?.parliament_constituency_id
+    ? parliamentConstituencies.data?.find((p) => p.id === assembly.parliament_constituency_id)
+    : undefined
+
   const summary = useQuery({
-    queryKey: ['summary', assemblyId],
-    queryFn: async () => (await getApi()).getAssemblySummary(assemblyId!),
-    enabled: Boolean(assemblyId),
+    queryKey: ['summary', assemblyId, electionId],
+    queryFn: async () => (await getApi()).getAssemblySummary(assemblyId, electionId),
+    enabled: Boolean(assemblyId) && Boolean(electionId),
   })
   const weakest = useQuery({
-    queryKey: ['weakest', assemblyId],
-    queryFn: async () => (await getApi()).getWeakestBooths(assemblyId!, 10),
-    enabled: Boolean(assemblyId),
+    queryKey: ['weakest', assemblyId, electionId],
+    queryFn: async () => (await getApi()).getWeakestBooths(assemblyId, electionId, 10),
+    enabled: Boolean(assemblyId) && Boolean(electionId),
   })
   const progress = useQuery({
-    queryKey: ['actionProgress', assemblyId],
-    queryFn: async () => (await getApi()).getActionProgress(assemblyId!),
-    enabled: Boolean(assemblyId),
+    queryKey: ['actionProgress', assemblyId, electionId],
+    queryFn: async () => (await getApi()).getActionProgress(assemblyId, electionId),
+    enabled: Boolean(assemblyId) && Boolean(electionId),
   })
 
   const err = summary.error ?? weakest.error ?? progress.error
@@ -75,12 +81,32 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <div className="toolbar">
-        <Link to={`/assembly/${assemblyId}`}>← {t('வாக்குச்சாவடிகள்', 'Booths')}</Link>
-      </div>
-      <h2 className="page-title">
-        {assembly?.name ?? '…'} — <L ta="டாஷ்போர்டு" en="Dashboard" />
-      </h2>
+      {assembly && (assembly.district || assembly.constituency_code || assembly.state_code || pc) && (
+        <div className="toolbar hint" style={{ gap: 12, marginBottom: 10 }}>
+          {assembly.district && (
+            <span>
+              <L ta="மாவட்டம்" en="District" />: {assembly.district}
+            </span>
+          )}
+          {assembly.constituency_code && (
+            <span>
+              <L ta="தொகுதி குறியீடு" en="Constituency code" />: {assembly.constituency_code}
+            </span>
+          )}
+          {assembly.state_code && (
+            <span>
+              <L ta="மாநிலம்" en="State" />: {assembly.state_code}
+            </span>
+          )}
+          {pc && (
+            <span>
+              <L ta="மக்களவைத் தொகுதி" en="Parliament Constituency" />:{' '}
+              <Link to={`/parliament-constituencies/${pc.id}`}>{pc.name}</Link>
+            </span>
+          )}
+        </div>
+      )}
+
       {err != null && <div className="error">{String(err)}</div>}
 
       <div className="dash-tiles">

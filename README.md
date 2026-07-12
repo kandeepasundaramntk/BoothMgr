@@ -1,6 +1,6 @@
 # BoothMgr — பூத் மேலாண்மை
 
-Booth-level election campaign management for the 2026 Tamil Nadu by-elections.
+Booth-level election campaign management, supporting multiple election cycles.
 Digitizes the booth detail form (see `booth-form.html`), tracks the 21
 booth-level campaign actions per booth, and provides assembly dashboards.
 

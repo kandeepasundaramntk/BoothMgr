@@ -88,15 +88,25 @@ function BlankLines({ count }: { count: number }) {
   )
 }
 
-const FIELD_HEADING: Partial<Record<BoothFieldKey, string>> = {
-  party_votes: 'கட்சி வாரியாக பதிவான வாக்குகள் — 2026 (Polled votes, party wise)',
+const FIELD_HEADING = (electionName: string): Partial<Record<BoothFieldKey, string>> => ({
+  party_votes: `கட்சி வாரியாக பதிவான வாக்குகள்${electionName ? ` — ${electionName}` : ''} (Polled votes, party wise)`,
   castes: 'சாதி விகிதம் (% of Caste)',
   religions: 'மத விகிதம் (% of Religion)',
   influencers: 'உள்ளூர் செல்வாக்குள்ளவர்கள் — பெயர் & தொடர்பு (Micro-Influencers, name & contact)',
-}
+})
 
-function PrintField({ d, field, blank }: { d: BoothDetail; field: BoothFieldKey; blank: boolean }) {
-  const structuredHeading = FIELD_HEADING[field]
+function PrintField({
+  d,
+  field,
+  blank,
+  electionName,
+}: {
+  d: BoothDetail
+  field: BoothFieldKey
+  blank: boolean
+  electionName: string
+}) {
+  const structuredHeading = FIELD_HEADING(electionName)[field]
   if (structuredHeading) {
     let filled: React.ReactNode = null
     if (!blank) {
@@ -146,12 +156,15 @@ const ALL_SECTIONS: ReadonlySet<BoothSection> = new Set(['basic', 'votes', 'issu
 
 export default function PrintForm({
   assemblyName,
+  electionName = '',
   detail,
   blank,
   sections = ALL_SECTIONS,
   teamFilter = 'all',
 }: {
   assemblyName: string
+  /** Active election's name, shown in the print title and party-votes heading. */
+  electionName?: string
   detail: BoothDetail
   blank: boolean
   /** Which of the editor's 4 tabs to include; defaults to all of them. */
@@ -168,9 +181,9 @@ export default function PrintForm({
   return (
     <>
       <header style={{ textAlign: 'center', borderBottom: '3px double #333', paddingBottom: 10, marginBottom: 14 }}>
-        <h1 style={{ fontSize: 19 }}>இடைத்தேர்தல் — பூத் மட்ட விவரப் படிவம்</h1>
+        <h1 style={{ fontSize: 19 }}>பூத் மட்ட விவரப் படிவம்{electionName ? ` — ${electionName}` : ''}</h1>
         <h2 style={{ fontSize: 14, fontWeight: 'normal', color: '#444' }}>
-          By-Election — Booth Level Detail Form (2026)
+          Booth Level Detail Form{electionName ? ` (${electionName})` : ''}
         </h2>
       </header>
 
@@ -200,7 +213,7 @@ export default function PrintForm({
             </h3>
 
             {fields.map((field) => (
-              <PrintField key={field} d={d} field={field} blank={blank} />
+              <PrintField key={field} d={d} field={field} blank={blank} electionName={electionName} />
             ))}
 
             {actions.map((action) => {

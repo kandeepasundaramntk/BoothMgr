@@ -5,6 +5,7 @@ import { getApi } from '../../data/api'
 import { ROLE_LABEL } from '../../data/roles'
 import { L, useLang, useT } from '../../i18n'
 import type { UserRole, UserStatus } from '../../types'
+import { assemblyLabel } from '../../utils/assemblyLabel'
 
 const STATUS_LABEL: Record<UserStatus, { ta: string; en: string }> = {
   pending: { ta: 'காத்திருப்பு', en: 'Pending' },
@@ -31,8 +32,11 @@ export default function UsersTab() {
     queryFn: async () => (await getApi()).listAssemblies(),
   })
 
-  const assemblyName = (id: string | null) =>
-    id === null ? '—' : (assemblies.data?.find((a) => a.id === id)?.name ?? '…')
+  const assemblyName = (id: string | null) => {
+    if (id === null) return '—'
+    const a = assemblies.data?.find((a) => a.id === id)
+    return a ? assemblyLabel(a) : '…'
+  }
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()

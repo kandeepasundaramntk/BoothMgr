@@ -15,6 +15,8 @@ export type FormTeam = 'poc' | 'itw'
 
 export interface GenerateFormsOptions {
   assemblyName: string
+  /** Active election's name, shown in the doc title and party-votes field label. Optional — defaults to ''. */
+  electionName?: string
   /** Booths to include, already filtered and ordered. */
   details: BoothDetail[]
   teams: FormTeam[]
@@ -115,10 +117,12 @@ const POC_FIELDS: FieldSpec[] = [
   },
 ]
 
-const ITW_FIELDS: FieldSpec[] = [
+const itwFields = (electionName: string): FieldSpec[] => [
   {
     kind: 'table',
-    label: '2026 பதிவான வாக்குகள் – கட்சி வாரியாக (2026 Polled Votes / Party wise)',
+    label: electionName
+      ? `${electionName} பதிவான வாக்குகள் – கட்சி வாரியாக (${electionName} Polled Votes / Party wise)`
+      : 'பதிவான வாக்குகள் – கட்சி வாரியாக (Polled Votes / Party wise)',
     cols: ['கட்சி (Party)', 'வாக்குகள் (Votes)'],
     blankRows: 6,
     rows: (d) => d.partyVotes.map((v) => [v.party_name, String(v.votes)]),
@@ -143,12 +147,14 @@ const ITW_FIELDS: FieldSpec[] = [
   },
 ]
 
-const TEAM_FIELDS: Record<FormTeam, FieldSpec[]> = { poc: POC_FIELDS, itw: ITW_FIELDS }
+const teamFields = (team: FormTeam, electionName: string): FieldSpec[] =>
+  team === 'poc' ? POC_FIELDS : itwFields(electionName)
 
 function buildBoothSection(
   dx: Docx,
   team: FormTeam,
   assemblyName: string,
+  electionName: string,
   d: BoothDetail,
   slNo: number,
   prefilled: boolean,
@@ -198,7 +204,7 @@ function buildBoothSection(
   const children: (InstanceType<Docx['Paragraph']> | InstanceType<Docx['Table']>)[] = [
     title('நாம் தமிழர் கட்சி — பூத் மட்ட விவரப் படிவம் (Booth Level Details Form)', 28, ACCENT),
     title(TEAM_TITLE[team], 24),
-    title('2026 இடைத்தேர்தல் (2026 By-Election)', 20),
+    ...(electionName ? [title(electionName, 20)] : []),
     headerTable,
   ]
 
@@ -243,7 +249,7 @@ function buildBoothSection(
       ],
     })
 
-  TEAM_FIELDS[team].forEach((field, i) => {
+  teamFields(team, electionName).forEach((field, i) => {
     children.push(fieldLabel(i + 1, field.label))
     if (field.kind === 'lines') {
       if (prefilled) children.push(...textParagraphs(field.text(d)))
@@ -284,12 +290,15 @@ export async function generateTeamForms(opts: GenerateFormsOptions): Promise<voi
   const dx = await import('docx')
   const safeName = safeFilenamePart(opts.assemblyName)
   const date = new Date().toISOString().slice(0, 10)
+  const electionName = opts.electionName ?? ''
 
   const files: { name: string; blob: Blob }[] = []
   for (const team of opts.teams) {
     const doc = new dx.Document({
       styles: { default: { document: { run: { font: FONT } } } },
-      sections: opts.details.map((d, idx) => buildBoothSection(dx, team, opts.assemblyName, d, idx + 1, opts.prefilled)),
+      sections: opts.details.map((d, idx) =>
+        buildBoothSection(dx, team, opts.assemblyName, electionName, d, idx + 1, opts.prefilled),
+      ),
     })
     const blob = await dx.Packer.toBlob(doc)
     const teamName = team === 'poc' ? 'Assembly-POC' : 'IT-Wing'

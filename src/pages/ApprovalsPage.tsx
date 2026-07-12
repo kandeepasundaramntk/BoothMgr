@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useAuth, useEffectiveProfile } from '../auth/AuthContext'
 import { getApi } from '../data/api'
 import { ROLE_LABEL } from '../data/roles'
 import { L, useT } from '../i18n'
 import type { Profile, UserRole } from '../types'
+import { assemblyLabel } from '../utils/assemblyLabel'
 
 /** User approval queue for admins and assembly POCs; role management for admins. */
 export default function ApprovalsPage() {
@@ -57,8 +58,11 @@ export default function ApprovalsPage() {
 
   if (!canApprove) return <Navigate to="/" replace />
 
-  const assemblyName = (id: string | null) =>
-    id === null ? '—' : (assemblies.data?.find((a) => a.id === id)?.name ?? '…')
+  const assemblyName = (id: string | null) => {
+    if (id === null) return '—'
+    const a = assemblies.data?.find((a) => a.id === id)
+    return a ? assemblyLabel(a) : '…'
+  }
 
   const all = profiles.data ?? []
   const pending = all.filter((p) => p.status === 'pending')
@@ -68,6 +72,9 @@ export default function ApprovalsPage() {
 
   return (
     <div className="card">
+      <div className="toolbar">
+        <Link to="/">← {t('தொகுதிகள்', 'Assemblies')}</Link>
+      </div>
       <h2 className="page-title">
         <L ta="ஒப்புதல்கள்" en="Approvals" />
       </h2>

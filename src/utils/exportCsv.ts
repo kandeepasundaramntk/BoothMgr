@@ -24,9 +24,17 @@ function csvSafe(value: string): string {
  * spreadsheet ("Booth level details" sheet) so the file round-trips to Excel;
  * health score and the 21 action statuses are appended after.
  */
-export async function exportAssemblyCsv(assemblyId: string, assemblyName: string): Promise<void> {
+export async function exportAssemblyCsv(
+  assemblyId: string,
+  electionId: string,
+  assemblyName: string,
+  electionName = '',
+): Promise<void> {
   const api = await getApi()
-  const details = await api.getAssemblyExport(assemblyId)
+  const details = await api.getAssemblyExport(assemblyId, electionId)
+  const partyVotesHeader = electionName
+    ? `${electionName} - polled votes / party wise`
+    : 'Polled votes / party wise'
 
   const rows = details.map((d, i) => {
     const row: Record<string, string> = {
@@ -34,7 +42,7 @@ export async function exportAssemblyCsv(assemblyId: string, assemblyName: string
       'Assembly Name': assemblyName,
       'Booth Number': d.booth.booth_number,
       'Village / Ward / area': d.booth.village_ward_area,
-      '2026 - polled votes / party wise': d.partyVotes.map((v) => `${v.party_name}: ${v.votes}`).join('; '),
+      [partyVotesHeader]: d.partyVotes.map((v) => `${v.party_name}: ${v.votes}`).join('; '),
       '% of Caste': d.castes.map((c) => `${c.caste_name}: ${c.pct}%`).join('; '),
       '% of religion': d.religions.map((r) => `${r.religion_name}: ${r.pct}%`).join('; '),
       'Micro-Influencer Name & Contact details': d.influencers

@@ -7,6 +7,7 @@ import { ACTIONS } from '../data/actionsCatalog'
 import { getApi } from '../data/api'
 import { BOOTH_SECTIONS, type BoothSection } from '../data/boothSections'
 import { FIELD_TEAM, matchesTeam, type BoothFieldKey, type TeamFilter } from '../data/teams'
+import { useActiveElection } from '../election/ElectionContext'
 import { L, useT } from '../i18n'
 import type { ActionStatus, BoothDetail } from '../types'
 
@@ -26,6 +27,7 @@ export default function BoothPage() {
   const { boothId } = useParams<{ boothId: string }>()
   const queryClient = useQueryClient()
   const t = useT()
+  const { activeElectionId, activeElection } = useActiveElection()
   const [form, setForm] = useState<BoothDetail | null>(null)
   const [tab, setTab] = useState<BoothSection>('basic')
   const [teamFilter, setTeamFilter] = useState<TeamFilter>('all')
@@ -34,9 +36,9 @@ export default function BoothPage() {
   const [savedAt, setSavedAt] = useState<Date | null>(null)
 
   const detail = useQuery({
-    queryKey: ['booth', boothId],
-    queryFn: async () => (await getApi()).getBoothDetail(boothId!),
-    enabled: Boolean(boothId),
+    queryKey: ['booth', boothId, activeElectionId],
+    queryFn: async () => (await getApi()).getBoothDetail(boothId!, activeElectionId!),
+    enabled: Boolean(boothId) && Boolean(activeElectionId),
   })
 
   useEffect(() => {
@@ -52,12 +54,12 @@ export default function BoothPage() {
   }, [dirty])
 
   const save = useMutation({
-    mutationFn: async (d: BoothDetail) => (await getApi()).saveBoothDetail(d),
+    mutationFn: async (d: BoothDetail) => (await getApi()).saveBoothDetail(d, activeElectionId!),
     onSuccess: () => {
       setDirty(false)
       setError(null)
       setSavedAt(new Date())
-      void queryClient.invalidateQueries({ queryKey: ['booth', boothId] })
+      void queryClient.invalidateQueries({ queryKey: ['booth', boothId, activeElectionId] })
       void queryClient.invalidateQueries({ queryKey: ['booths'] })
     },
     onError: (e) => setError(e instanceof Error ? e.message : String(e)),
@@ -65,12 +67,20 @@ export default function BoothPage() {
 
   const actionMutation = useMutation({
     mutationFn: async (args: { actionId: number; status: ActionStatus; notes: string }) =>
-      (await getApi()).setActionStatus(boothId!, args.actionId, args.status, args.notes),
+      (await getApi()).setActionStatus(boothId!, activeElectionId!, args.actionId, args.status, args.notes),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['booths'] })
     },
     onError: (e) => setError(e instanceof Error ? e.message : String(e)),
   })
+
+  if (!activeElectionId) {
+    return (
+      <div className="card error">
+        <L ta="தேர்தலைத் தேர்ந்தெடுக்கவும்" en="Select an election first" />
+      </div>
+    )
+  }
 
   if (detail.isLoading || !form) return <div className="card">Loading…</div>
   if (detail.isError) return <div className="card error">{String(detail.error)}</div>
@@ -158,7 +168,10 @@ export default function BoothPage() {
       {showField('party_votes') && (
       <div className="field">
         <label>
-          <L ta="கட்சி வாரியாக பதிவான வாக்குகள் — 2026" en="2026 — Polled votes, party wise" />
+          <L
+            ta={`கட்சி வாரியாக பதிவான வாக்குகள் — ${activeElection?.year ?? ''}`}
+            en={`${activeElection?.year ?? ''} — Polled votes, party wise`}
+          />
           <TeamBadge team={FIELD_TEAM.party_votes} />
         </label>
         {form.partyVotes.map((v, i) => (
