@@ -4,6 +4,7 @@ import { getApi } from '../../data/api'
 import { useActiveElection } from '../../election/ElectionContext'
 import { L, useT } from '../../i18n'
 import type { AssemblyBackup, RestoreResult } from '../../types'
+import { assemblyLabel } from '../../utils/assemblyLabel'
 import { exportAssemblyBackup } from '../../utils/exportJson'
 
 export default function BackupRestoreTab() {
@@ -112,7 +113,7 @@ export default function BackupRestoreTab() {
           <option value="">{t('தொகுதியைத் தேர்ந்தெடு', 'Select an assembly')}</option>
           {assemblies.data?.map((a) => (
             <option key={a.id} value={a.id}>
-              {a.name}
+              {assemblyLabel(a)}
             </option>
           ))}
         </select>

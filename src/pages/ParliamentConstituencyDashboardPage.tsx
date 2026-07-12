@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { getApi } from '../data/api'
 import { useActiveElection } from '../election/ElectionContext'
 import { L, useT } from '../i18n'
+import { assemblyLabel } from '../utils/assemblyLabel'
 
 function fmtPct(v: number | null): string {
   return v === null ? '—' : `${v.toFixed(1)}%`
@@ -119,7 +120,7 @@ export default function ParliamentConstituencyDashboardPage() {
               <tbody>
                 {memberAssemblies.map((a) => (
                   <tr key={a.id}>
-                    <td>{a.name}</td>
+                    <td>{assemblyLabel(a)}</td>
                     <td>{a.district}</td>
                     <td>
                       <Link className="btn small secondary" to={`/assembly/${a.id}`}>

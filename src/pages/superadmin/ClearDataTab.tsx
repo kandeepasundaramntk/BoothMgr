@@ -4,6 +4,7 @@ import { DangerConfirm } from '../../components/DangerConfirm'
 import { getApi } from '../../data/api'
 import { useActiveElection } from '../../election/ElectionContext'
 import { L, useT } from '../../i18n'
+import { assemblyLabel } from '../../utils/assemblyLabel'
 
 export default function ClearDataTab() {
   const t = useT()
@@ -53,7 +54,7 @@ export default function ClearDataTab() {
 
   const clearAssemblyElection = useMutation({
     mutationFn: async () => (await getApi()).clearAssemblyElectionData(assemblyId, electionId),
-    onSuccess: (n) => onCleared(n, `${selected?.name ?? assemblyId} · ${selectedElection?.name ?? electionId}`),
+    onSuccess: (n) => onCleared(n, `${selected ? assemblyLabel(selected) : assemblyId} · ${selectedElection?.name ?? electionId}`),
     onError,
   })
   const clearElection = useMutation({
@@ -63,7 +64,7 @@ export default function ClearDataTab() {
   })
   const clearAssembly = useMutation({
     mutationFn: async (id: string) => (await getApi()).clearAssemblyData(id),
-    onSuccess: (n) => onDeleted(n, selected?.name ?? assemblyId),
+    onSuccess: (n) => onDeleted(n, selected ? assemblyLabel(selected) : assemblyId),
     onError,
   })
   const clearAll = useMutation({
@@ -93,7 +94,7 @@ export default function ClearDataTab() {
           <option value="">{t('தொகுதியைத் தேர்ந்தெடு', 'Select an assembly')}</option>
           {assemblies.data?.map((a) => (
             <option key={a.id} value={a.id}>
-              {a.name}
+              {assemblyLabel(a)}
             </option>
           ))}
         </select>
@@ -112,7 +113,7 @@ export default function ClearDataTab() {
       </p>
       {selected && selectedElection && (
         <DangerConfirm
-          requiredText={selected.name}
+          requiredText={assemblyLabel(selected)}
           disabled={clearAssemblyElection.isPending}
           busy={clearAssemblyElection.isPending}
           label={{ ta: 'இந்த தொகுதியின் இந்த தேர்தல் தரவை அழி', en: 'Clear this assembly’s data for this election' }}
@@ -140,7 +141,7 @@ export default function ClearDataTab() {
       </p>
       {selected && (
         <DangerConfirm
-          requiredText={selected.name}
+          requiredText={assemblyLabel(selected)}
           disabled={clearAssembly.isPending}
           busy={clearAssembly.isPending}
           label={{ ta: 'இந்த தொகுதியின் பூத்களை நீக்கு', en: 'Delete this assembly’s booths' }}

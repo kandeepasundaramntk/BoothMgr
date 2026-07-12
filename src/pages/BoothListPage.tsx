@@ -4,6 +4,7 @@ import { Tabs, type TabDef } from '../components/Tabs'
 import { getApi } from '../data/api'
 import { useActiveElection } from '../election/ElectionContext'
 import { L } from '../i18n'
+import { assemblyLabel } from '../utils/assemblyLabel'
 import { BoothsTab } from './assembly/BoothsTab'
 import { OverviewTab } from './assembly/OverviewTab'
 
@@ -43,7 +44,7 @@ export default function BoothListPage() {
 
   return (
     <div className="card">
-      <h2 className="page-title">{assembly?.name ?? '…'}</h2>
+      <h2 className="page-title">{assembly ? assemblyLabel(assembly) : '…'}</h2>
       <Tabs tabs={TABS} active={tab} onChange={setTab} />
       {tab === 'overview' ? (
         <OverviewTab assemblyId={assemblyId!} electionId={activeElectionId} />

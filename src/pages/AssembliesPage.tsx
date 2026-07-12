@@ -6,6 +6,7 @@ import { getApi } from '../data/api'
 import { useActiveElection } from '../election/ElectionContext'
 import { L, useT } from '../i18n'
 import type { Assembly } from '../types'
+import { assemblyLabel } from '../utils/assemblyLabel'
 import { healthColor, healthLabel } from '../utils/health'
 
 interface AssemblyEditFields {
@@ -191,7 +192,7 @@ export default function AssembliesPage() {
               return (
                 <tr key={a.id}>
                   <td>
-                    <Link to={`/assembly/${a.id}`}>{a.name}</Link>
+                    <Link to={`/assembly/${a.id}`}>{assemblyLabel(a)}</Link>
                   </td>
                   <td>
                     {isEditing && editFields ? (

@@ -4,6 +4,7 @@ import { ACTIVITY_ACTION_TYPES, describeActionType } from '../../data/activityLo
 import { getApi } from '../../data/api'
 import { L, useT } from '../../i18n'
 import type { ActivityLogFilter } from '../../types'
+import { assemblyLabel } from '../../utils/assemblyLabel'
 
 const PAGE_SIZE = 25
 
@@ -40,8 +41,11 @@ export default function ActivityLogTab() {
     queryFn: async () => (await getApi()).getActivityLog(filter),
   })
 
-  const assemblyName = (id: string | null) =>
-    id === null ? '—' : (assemblies.data?.find((a) => a.id === id)?.name ?? '…')
+  const assemblyName = (id: string | null) => {
+    if (id === null) return '—'
+    const a = assemblies.data?.find((a) => a.id === id)
+    return a ? assemblyLabel(a) : '…'
+  }
 
   function withReset<T>(setter: (v: T) => void): (v: T) => void {
     return (v: T) => {
@@ -60,7 +64,7 @@ export default function ActivityLogTab() {
           <option value="">{t('அனைத்து தொகுதிகள்', 'All assemblies')}</option>
           {assemblies.data?.map((a) => (
             <option key={a.id} value={a.id}>
-              {a.name}
+              {assemblyLabel(a)}
             </option>
           ))}
         </select>
