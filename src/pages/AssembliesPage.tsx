@@ -3,8 +3,10 @@ import { useState, type FormEvent } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { useEffectiveProfile } from '../auth/AuthContext'
 import { getApi } from '../data/api'
+import { useActiveElection } from '../election/ElectionContext'
 import { L, useT } from '../i18n'
 import type { Assembly } from '../types'
+import { healthColor, healthLabel } from '../utils/health'
 
 interface AssemblyEditFields {
   parliament_constituency_id: string
@@ -26,6 +28,7 @@ export default function AssembliesPage() {
   const profile = useEffectiveProfile()
   const queryClient = useQueryClient()
   const t = useT()
+  const { activeElectionId } = useActiveElection()
   const [name, setName] = useState('')
   const [pcId, setPcId] = useState('')
   const [constituencyCode, setConstituencyCode] = useState('')
@@ -47,6 +50,16 @@ export default function AssembliesPage() {
   })
 
   const pcById = new Map((parliamentConstituencies.data ?? []).map((pc) => [pc.id, pc]))
+
+  const assemblySummaries = useQuery({
+    queryKey: ['assemblySummaries', activeElectionId],
+    queryFn: async () => (await getApi()).listAssemblySummaries(activeElectionId!),
+    enabled: Boolean(activeElectionId),
+  })
+
+  const summaryByAssemblyId = new Map(
+    (assemblySummaries.data ?? []).map((s) => [s.assembly_id, s]),
+  )
 
   const create = useMutation({
     mutationFn: async (input: {
@@ -141,6 +154,14 @@ export default function AssembliesPage() {
         </Link>
       </div>
       {error && <div className="error">{error}</div>}
+      {!activeElectionId && (
+        <p className="hint">
+          <L
+            ta="ஆரோக்கிய குறியீடுகளைக் காண தேர்தலைத் தேர்ந்தெடுக்கவும்."
+            en="Select an election to see health chips."
+          />
+        </p>
+      )}
       {assemblies.isLoading && <p>Loading…</p>}
       {assemblies.isError && <div className="error">{String(assemblies.error)}</div>}
       {assemblies.data && assemblies.data.length === 0 && (
@@ -157,6 +178,9 @@ export default function AssembliesPage() {
               </th>
               <th>
                 <L ta="மக்களவைத் தொகுதி" en="Parliament Constituency" />
+              </th>
+              <th>
+                <L ta="ஆரோக்கியம்" en="Health" />
               </th>
               <th style={{ width: 220 }}></th>
             </tr>
@@ -207,6 +231,18 @@ export default function AssembliesPage() {
                       </div>
                     ) : (
                       pcById.get(a.parliament_constituency_id ?? '')?.name ?? '—'
+                    )}
+                  </td>
+                  <td>
+                    {activeElectionId ? (
+                      <span
+                        className="pill"
+                        style={{ background: healthColor(summaryByAssemblyId.get(a.id)?.avg_committed_pct ?? null) }}
+                      >
+                        {healthLabel(summaryByAssemblyId.get(a.id)?.avg_committed_pct ?? null)}
+                      </span>
+                    ) : (
+                      '—'
                     )}
                   </td>
                   <td>
