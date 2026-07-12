@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Is
 
-"BoothMgr" is a booth-level election campaign management system for the 2026 Tamil Nadu by-elections (NTK 2.0). v1 digitizes the paper booth detail form, tracks the status of 21 booth-level campaign actions per booth, and provides assembly dashboards. The UI is bilingual — Tamil-primary by default with a header toggle to English-primary; labels are ta/en pairs at the call site via `src/i18n.tsx` (`<L ta en/>` / `useT()`), no i18n framework. Print views and generated .docx forms stay Tamil-primary.
+"BoothMgr" is a booth-level election campaign management system (NTK 2.0), supporting multiple election cycles. v1 digitizes the paper booth detail form, tracks the status of 21 booth-level campaign actions per booth, and provides assembly dashboards. The UI is bilingual — Tamil-primary by default with a header toggle to English-primary; labels are ta/en pairs at the call site via `src/i18n.tsx` (`<L ta en/>` / `useT()`), no i18n framework. Print views and generated .docx forms stay Tamil-primary.
 
 ## Stack & Commands
 

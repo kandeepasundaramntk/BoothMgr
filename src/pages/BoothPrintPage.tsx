@@ -6,6 +6,7 @@ import { TeamChips } from '../components/TeamBadge'
 import { getApi } from '../data/api'
 import { BOOTH_SECTIONS, type BoothSection } from '../data/boothSections'
 import type { TeamFilter } from '../data/teams'
+import { useActiveElection } from '../election/ElectionContext'
 import { L, useT } from '../i18n'
 
 // "Basic details" has no separate print content — the identifying header
@@ -19,6 +20,7 @@ export default function BoothPrintPage() {
   const [blank, setBlank] = useState(false)
   const [sections, setSections] = useState<Set<BoothSection>>(() => new Set(BOOTH_SECTIONS.map((s) => s.key)))
   const [teamFilter, setTeamFilter] = useState<TeamFilter>('all')
+  const { activeElection } = useActiveElection()
   const detail = useQuery({
     queryKey: ['booth', boothId],
     queryFn: async () => (await getApi()).getBoothDetail(boothId!),
@@ -73,7 +75,14 @@ export default function BoothPrintPage() {
         </div>
       </div>
 
-      <PrintForm assemblyName={assemblyName} detail={d} blank={blank} sections={sections} teamFilter={teamFilter} />
+      <PrintForm
+        assemblyName={assemblyName}
+        electionName={activeElection?.name ?? ''}
+        detail={d}
+        blank={blank}
+        sections={sections}
+        teamFilter={teamFilter}
+      />
     </div>
   )
 }

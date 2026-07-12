@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom'
 import PrintForm, { emptyBoothDetail } from '../components/PrintForm'
+import { useActiveElection } from '../election/ElectionContext'
 import { useT } from '../i18n'
 
 /** Booth-independent blank paper form — print as many copies as needed. */
 export default function BlankFormPage() {
   const t = useT()
+  const { activeElection } = useActiveElection()
   return (
     <div className="card" style={{ maxWidth: 800, margin: '0 auto' }}>
       <div className="toolbar no-print">
@@ -14,7 +16,7 @@ export default function BlankFormPage() {
           🖨️ {t('அச்சிடுக', 'Print')}
         </button>
       </div>
-      <PrintForm assemblyName="" detail={emptyBoothDetail()} blank />
+      <PrintForm assemblyName="" electionName={activeElection?.name ?? ''} detail={emptyBoothDetail()} blank />
     </div>
   )
 }
