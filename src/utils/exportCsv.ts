@@ -26,11 +26,12 @@ function csvSafe(value: string): string {
  */
 export async function exportAssemblyCsv(
   assemblyId: string,
+  electionId: string,
   assemblyName: string,
   electionName = '',
 ): Promise<void> {
   const api = await getApi()
-  const details = await api.getAssemblyExport(assemblyId)
+  const details = await api.getAssemblyExport(assemblyId, electionId)
   const partyVotesHeader = electionName
     ? `${electionName} - polled votes / party wise`
     : 'Polled votes / party wise'

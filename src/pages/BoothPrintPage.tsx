@@ -20,17 +20,24 @@ export default function BoothPrintPage() {
   const [blank, setBlank] = useState(false)
   const [sections, setSections] = useState<Set<BoothSection>>(() => new Set(BOOTH_SECTIONS.map((s) => s.key)))
   const [teamFilter, setTeamFilter] = useState<TeamFilter>('all')
-  const { activeElection } = useActiveElection()
+  const { activeElection, activeElectionId } = useActiveElection()
   const detail = useQuery({
-    queryKey: ['booth', boothId],
-    queryFn: async () => (await getApi()).getBoothDetail(boothId!),
-    enabled: Boolean(boothId),
+    queryKey: ['booth', boothId, activeElectionId],
+    queryFn: async () => (await getApi()).getBoothDetail(boothId!, activeElectionId!),
+    enabled: Boolean(boothId) && Boolean(activeElectionId),
   })
   const assemblies = useQuery({
     queryKey: ['assemblies'],
     queryFn: async () => (await getApi()).listAssemblies(),
   })
 
+  if (!activeElectionId) {
+    return (
+      <div className="card error">
+        <L ta="தேர்தலைத் தேர்ந்தெடுக்கவும்" en="Select an election first" />
+      </div>
+    )
+  }
   if (detail.isLoading) return <div className="card">Loading…</div>
   if (detail.isError || !detail.data) return <div className="card error">{String(detail.error)}</div>
 

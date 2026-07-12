@@ -4,6 +4,7 @@ import { useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { TOTAL_ACTIONS } from '../../data/actionsCatalog'
 import { getApi } from '../../data/api'
+import { useActiveElection } from '../../election/ElectionContext'
 import type { BoothImportRow } from '../../types'
 import { exportAssemblyCsv } from '../../utils/exportCsv'
 import { L, useT } from '../../i18n'
@@ -12,6 +13,7 @@ import { healthColor, healthLabel } from '../../utils/health'
 
 export function BoothsTab({ assemblyId, electionId }: { assemblyId: string; electionId: string }): JSX.Element {
   const navigate = useNavigate()
+  const { activeElection } = useActiveElection()
   const queryClient = useQueryClient()
   const t = useT()
   const fileRef = useRef<HTMLInputElement>(null)
@@ -100,7 +102,7 @@ export function BoothsTab({ assemblyId, electionId }: { assemblyId: string; elec
     setExporting(true)
     setError(null)
     try {
-      await exportAssemblyCsv(assemblyId, assembly?.name ?? 'assembly')
+      await exportAssemblyCsv(assemblyId, electionId, assembly?.name ?? 'assembly', activeElection?.name ?? '')
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
@@ -139,6 +141,7 @@ export function BoothsTab({ assemblyId, electionId }: { assemblyId: string; elec
       const details = (await api.getAssemblyExport(assemblyId, electionId)).filter((d) => !unselected.has(d.booth.id))
       await generateTeamForms({
         assemblyName: assembly?.name ?? 'assembly',
+        electionName: activeElection?.name ?? '',
         details,
         teams: selectedTeams,
         prefilled,
