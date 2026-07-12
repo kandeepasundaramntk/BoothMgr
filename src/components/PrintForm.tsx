@@ -181,7 +181,7 @@ export default function PrintForm({
   return (
     <>
       <header style={{ textAlign: 'center', borderBottom: '3px double #333', paddingBottom: 10, marginBottom: 14 }}>
-        <h1 style={{ fontSize: 19 }}>இடைத்தேர்தல் — பூத் மட்ட விவரப் படிவம்</h1>
+        <h1 style={{ fontSize: 19 }}>பூத் மட்ட விவரப் படிவம்{electionName ? ` — ${electionName}` : ''}</h1>
         <h2 style={{ fontSize: 14, fontWeight: 'normal', color: '#444' }}>
           Booth Level Detail Form{electionName ? ` (${electionName})` : ''}
         </h2>
